@@ -12,18 +12,19 @@ var paths = {
 // Initialize gulp-elm
 gulp.task('elm-init', elm.init);
 
-gulp.task('make', ['elm-init'], () => {
-  return gulp.src('src/App.elm')
-    .pipe(elm())
-    .pipe(gulp.dest(paths.dest))
-});
-
 gulp.task('browser-sync', () => {
   bs.init({
     server : {
       baseDir : "./"
     }
   });
+});
+
+gulp.task('make', ['elm-init'], () => {
+  return gulp.src('src/App.elm')
+    .pipe(elm())
+    .pipe(gulp.dest(paths.dest))
+    .pipe(bs.reload({ stream : true }));
 });
 
 gulp.task('sass', () => {
