@@ -1,4 +1,4 @@
-module Counter exposing (..)
+module Example exposing (..)
 
 import Html exposing (Html, text, p, div, button)
 import Html.Attributes exposing (class)

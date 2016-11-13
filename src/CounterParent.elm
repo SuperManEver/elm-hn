@@ -3,7 +3,7 @@ import Html.App as App exposing (program)
 import Html.Events exposing (onClick)
 import Html.Attributes exposing (class)
 import Random
-import Counter
+import Example
 
 main = 
   program

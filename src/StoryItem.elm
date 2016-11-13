@@ -4,6 +4,7 @@ import Html exposing (..)
 import Task
 import Json.Decode exposing (Decoder, list, int, string, object3, (:=))
 import Http
+import String exposing (concat)
 
 -- MODEL 
 type alias Model = 
@@ -35,7 +36,7 @@ loadStories stories =
     fetchSucceed id story = FetchSucceed id story
 
     makeUrl id = 
-      url ++ (toString id) ++ ".json"
+      concat [url, toString id,".json"]
 
     decoder = 
         object3 Model 
