@@ -1,3 +1,6 @@
 + 1. check how retrieving of IDs works
 - 2. define task/command in StoryItem to retrieve its story
 - 3. wire everything together 
+
+- write decoder for story's json
+- test decoder make sure it works correctly 
