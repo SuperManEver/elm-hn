@@ -1,10 +1,13 @@
 module StoryItem exposing (..)
 
 import Html exposing (..)
-import Task
-import Json.Decode exposing (Decoder, list, int, string, object3, (:=))
-import Http
+import Task exposing (Task, perform)
+import Json.Decode as Json exposing ((:=))
+import Http exposing (Error)
 import String exposing (concat)
+
+itemUrl : String 
+itemUrl = "https://hacker-news.firebaseio.com/v0/item/"
 
 -- MODEL 
 type alias Model = 
@@ -13,74 +16,81 @@ type alias Model =
   , url : String
   }
 
-type Msg 
-  = NoOp
-  | StoryFetchFail Http.Error
-  | FetchSucceed Int Model
-
-
-createStory : Int -> Model 
+createStory : Int -> Model
 createStory id = 
-  { id = id 
+  { id = id
   , title = ""
-  , url = "" 
+  , url = ""
+  }
+
+defaultModel : Model 
+defaultModel = 
+  { id = 1 
+  , title = ""
+  , url = ""
   }
 
 
--- COMMAND 
-loadStories : List Model -> List (Cmd Msg)
-loadStories stories = 
+-- COMMANDS
+decoder : Json.Decoder Model
+decoder = 
+  Json.object3 Model
+    ("id" := Json.int)
+    ("title" := Json.string)
+    ("url" := Json.string)
+
+
+item : Int -> Task Error Model
+item id = 
+  Http.get decoder <| concat [ itemUrl, toString id, ".json" ]
+
+
+loadStory : Int -> Cmd Msg 
+loadStory id = 
   let 
-    url = "https://hacker-news.firebaseio.com/v0/item/"
-
-    fetchSucceed id story = FetchSucceed id story
-
-    makeUrl id = 
-      concat [url, toString id,".json"]
-
-    decoder = 
-        object3 Model 
-          ("id" := int)
-          ("title" := string)
-          ("url" := string)
-
-  in 
-    List.map 
-      (\ story -> Task.perform StoryFetchFail (fetchSucceed story.id) (Http.get decoder (makeUrl story.id)) ) 
-      stories
-    
+    storyLoaded id model = StoryLoaded id model
+    storyFailed id error = StoryFailed id error
+  in
+    perform (storyFailed id) (storyLoaded id) <| item id
 
 
--- UPDATE
+loadStories : List Model -> Cmd Msg
+loadStories stories = 
+  stories
+    |> List.map (\ story -> loadStory story.id) 
+    |> Cmd.batch 
+
+
+-- UPDATE 
+type Msg 
+  = NoOp
+  | StoryFailed Int Http.Error
+  | StoryLoaded Int Model
+
+
 update : Msg -> List Model -> (List Model, Cmd Msg)
-update msg model =
-  case msg of 
-    NoOp ->
-      model ! []
-
-    StoryFetchFail _ -> 
-      model ! []
-
-    FetchSucceed id story -> 
-      let 
-        updateModel = 
-          List.map 
-            (\ s -> if s.id == id then {s | title = "Hello" } else s) 
-            model
-      in
+update msg model = 
+  let 
+    updateModel diff id model = 
+      List.map (\ val -> if val.id == id then diff val else val) model
+  in
+    case msg of 
+      NoOp -> 
         model ! []
 
+      StoryFailed id _ -> 
+          model ! []
+
+      StoryLoaded id item -> 
+        let  
+          stories = updateModel (\ val -> item) id model
+        in
+          stories ! []
+
+
 -- VIEW 
-storyView : Model -> Html Msg 
-storyView {id, title} = 
+view : Model -> Html Msg
+view {title, url} = 
   div [] 
-    [ p [] [ text title ]
+    [ p [] [ text title ] 
     ]
-
-
-view : List Model -> Html Msg
-view model = 
-  let 
-    stories = List.map (\ story -> storyView story) model
-  in
-    div [] stories
