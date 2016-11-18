@@ -1,6 +1,7 @@
 module StoryItem exposing (..)
 
 import Html exposing (..)
+import Html.Attributes exposing (class)
 import Task exposing (Task, perform)
 import Json.Decode as Json exposing ((:=))
 import Http exposing (Error)
@@ -19,7 +20,7 @@ type alias Model =
 createStory : Int -> Model
 createStory id = 
   { id = id
-  , title = ""
+  , title = "Loading"
   , url = ""
   }
 
@@ -91,7 +92,7 @@ update msg model =
 -- VIEW 
 viewItem : Model -> Html Msg
 viewItem {title, url} = 
-  div [] 
+  div [ class "story-item" ] 
     [ p [] [ text title ] 
     ]
 

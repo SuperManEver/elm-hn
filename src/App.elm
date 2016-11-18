@@ -1,6 +1,7 @@
 import Html exposing (..)
 import Html.App as App exposing (program)
 import Html.Events exposing (onClick)
+import Html.Attributes exposing (class)
 import String exposing (concat)
 import Http exposing (Error)
 import Task exposing (Task, perform)
@@ -111,7 +112,7 @@ view model =
     stories = 
       App.map StoryMsg (StoryItem.view model.stories)
   in
-    div [] 
+    div [ class "main-container" ] 
       [ button [ onClick LoadMoreStories ] [ text "Load More" ]
       , button [ onClick GetWindowHeight ] [ text "Height" ]
       , stories
