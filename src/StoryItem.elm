@@ -54,10 +54,10 @@ loadStory id =
     perform (storyFailed id) (storyLoaded id) <| item id
 
 
-loadStories : List Model -> Cmd Msg
-loadStories stories = 
-  stories
-    |> List.map (\ story -> loadStory story.id) 
+loadStories : List Int -> Cmd Msg
+loadStories ids = 
+  ids
+    |> List.map (\ id -> loadStory id) 
     |> Cmd.batch 
 
 
@@ -89,8 +89,15 @@ update msg model =
 
 
 -- VIEW 
-view : Model -> Html Msg
-view {title, url} = 
+viewItem : Model -> Html Msg
+viewItem {title, url} = 
   div [] 
     [ p [] [ text title ] 
     ]
+
+view : List Model -> Html Msg 
+view stories = 
+  let 
+    xs = List.map (\ story -> viewItem story) stories
+  in
+    div [] xs

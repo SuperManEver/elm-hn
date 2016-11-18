@@ -1,14 +1,19 @@
 import Html exposing (..)
 import Html.App as App exposing (program)
+import Html.Events exposing (onClick)
 import String exposing (concat)
 import Http exposing (Error)
 import Task exposing (Task, perform)
 import Json.Decode as Json exposing ((:=))
 import StoryItem
+import Window exposing (height)
+import Basics.Extra exposing (never)
 
 latestURL : String 
 latestURL = "https://hacker-news.firebaseio.com/v0/newstories.json"
 
+shift : Int 
+shift = 40
 
 -- MAIN 
 main = program
@@ -36,6 +41,9 @@ type Msg
   | LatestFailed Http.Error
   | LatestLoaded (List Int)
   | StoryMsg StoryItem.Msg 
+  | LoadMoreStories
+  | GetWindowHeight
+  | WindowHeight Int
 
 
 -- COMMANDS
@@ -61,14 +69,15 @@ update msg model =
 
     LatestLoaded ids ->
       let 
+        current = List.take shift ids
         newStories = 
-          List.map (\ id -> StoryItem.createStory id) (List.take 20 ids)
+          List.map (\ id -> StoryItem.createStory id) current
       in
         {model 
-        | storiesIds = (List.drop 20 ids)
+        | storiesIds = (List.drop shift ids)
         , stories = newStories 
         } 
-        ! [ Cmd.map StoryMsg (StoryItem.loadStories newStories) ]
+        ! [ Cmd.map StoryMsg (StoryItem.loadStories current) ]
 
     StoryMsg subMsg -> 
       let 
@@ -76,11 +85,34 @@ update msg model =
       in
         {model | stories = updatedItems} ! [ Cmd.map StoryMsg storyItemCmd ]
 
+    LoadMoreStories -> 
+      let 
+        current = List.take shift model.storiesIds
+        newStories = 
+          List.map (\ id -> StoryItem.createStory id) current
+      in
+        { model 
+        | storiesIds = (List.drop shift model.storiesIds)
+        , stories = model.stories ++ newStories
+        } 
+        ! [ Cmd.map StoryMsg (StoryItem.loadStories current)]
+
+    WindowHeight height -> 
+      Debug.log (toString height)
+      model ! []
+
+    GetWindowHeight -> 
+      model ! [perform never WindowHeight Window.height]
 
 -- VIEW 
 view : Model -> Html Msg
 view model = 
   let 
-    stories = List.map (\ story -> App.map StoryMsg (StoryItem.view story) ) model.stories
+    stories = 
+      App.map StoryMsg (StoryItem.view model.stories)
   in
-    div [] stories
+    div [] 
+      [ button [ onClick LoadMoreStories ] [ text "Load More" ]
+      , button [ onClick GetWindowHeight ] [ text "Height" ]
+      , stories
+      ]

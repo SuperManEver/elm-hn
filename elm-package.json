@@ -1,17 +1,20 @@
 {
-  "version": "1.0.0",
-  "summary": "first application in elm",
-  "repository": "https://github.com/SuperManEver/flashcards.git",
-  "license": "MIT",
-  "source-directories": [
-    "src/"
-  ],
-  "exposed-modules": [],
-  "dependencies": {
-    "elm-lang/core": "4.0.5 <= v < 5.0.0",
-    "elm-lang/html": "1.1.0 <= v < 2.0.0",
-    "elm-lang/svg": "1.1.1 <= v < 2.0.0",
-    "evancz/elm-http": "3.0.1 <= v < 4.0.0"
-  },
-  "elm-version": "0.17.0 <= v < 0.18.0"
+    "version": "1.0.0",
+    "summary": "first application in elm",
+    "repository": "https://github.com/SuperManEver/flashcards.git",
+    "license": "MIT",
+    "source-directories": [
+        "src/"
+    ],
+    "exposed-modules": [],
+    "dependencies": {
+        "elm-community/basics-extra": "1.2.0 <= v < 2.0.0",
+        "elm-lang/core": "4.0.5 <= v < 5.0.0",
+        "elm-lang/dom": "1.1.0 <= v < 2.0.0",
+        "elm-lang/html": "1.1.0 <= v < 2.0.0",
+        "elm-lang/svg": "1.1.1 <= v < 2.0.0",
+        "elm-lang/window": "1.0.0 <= v < 2.0.0",
+        "evancz/elm-http": "3.0.1 <= v < 4.0.0"
+    },
+    "elm-version": "0.17.0 <= v < 0.18.0"
 }
