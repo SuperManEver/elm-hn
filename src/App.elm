@@ -1,6 +1,6 @@
 import Html exposing (..)
 import Html.App as App exposing (program)
-import Html.Events exposing (onClick)
+import Html.Events exposing (onClick, on)
 import Html.Attributes exposing (class)
 import String exposing (concat)
 import Http exposing (Error)
@@ -9,6 +9,8 @@ import Json.Decode as Json exposing ((:=))
 import StoryItem
 import Window exposing (height)
 import Basics.Extra exposing (never)
+
+import Ports exposing (..)
 
 latestURL : String 
 latestURL = "https://hacker-news.firebaseio.com/v0/newstories.json"
@@ -21,7 +23,7 @@ main = program
   { init = init 
   , update = update 
   , view = view 
-  , subscriptions = \ _ -> Sub.none
+  , subscriptions = subscriptions
   }
 
 
@@ -45,6 +47,7 @@ type Msg
   | LoadMoreStories
   | GetWindowHeight
   | WindowHeight Int
+  | Scroll Bool
 
 
 -- COMMANDS
@@ -99,13 +102,35 @@ update msg model =
         ! [ Cmd.map StoryMsg (StoryItem.loadStories current)]
 
     WindowHeight height -> 
-      Debug.log (toString height)
       model ! []
 
     GetWindowHeight -> 
       model ! [perform never WindowHeight Window.height]
 
+    Scroll pos -> 
+      if pos 
+      then update LoadMoreStories model 
+      else update NoOp model
+
+
+{--
+
 -- VIEW 
+scrollTop : Json.Decoder Int
+scrollTop =
+  Json.at [ "target", "scrollingElement", "scrollTop" ] Json.int
+
+onScroll : (Int -> Msg) -> Attribute Msg 
+onScroll tagger = 
+  on "scroll" (Json.map tagger scrollTop)
+--}  
+
+-- SUBSCRIPTIONS
+subscriptions : Model -> Sub Msg 
+subscriptions model = 
+  scroll Scroll
+
+
 view : Model -> Html Msg
 view model = 
   let 
@@ -114,6 +139,5 @@ view model =
   in
     div [ class "main-container" ] 
       [ button [ onClick LoadMoreStories ] [ text "Load More" ]
-      , button [ onClick GetWindowHeight ] [ text "Height" ]
       , stories
       ]

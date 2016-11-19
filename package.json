@@ -3,10 +3,10 @@
   "version": "0.0.1",
   "description": "learning Elm lang",
   "scripts": {
-    "make"  : "elm-make src/App.elm --output build/App.js",
-    "build" : "gulp make",
-    "start" : "gulp watch",
-    "sass"  : "gulp sass"
+    "make": "elm-make src/App.elm --output build/App.js",
+    "build": "gulp make",
+    "start": "gulp watch",
+    "sass": "gulp sass"
   },
   "author": "Nikita Luparev <nikita.luparev@gmail.com>",
   "license": "MIT",
@@ -24,6 +24,7 @@
     "webpack-stream": "^3.2.0"
   },
   "dependencies": {
-    "elm-webpack-loader": "^3.0.6"
+    "elm-webpack-loader": "^3.0.6",
+    "jquery": "^3.1.1"
   }
 }

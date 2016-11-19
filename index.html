@@ -11,6 +11,7 @@
     <!-- Place favicon.ico in the root directory -->
 
     <link rel="stylesheet" href="build/main.css">
+    <script src="node_modules/jquery/dist/jquery.min.js"></script>
   </head>
   <body>
     <!--[if lt IE 8]>
@@ -22,8 +23,19 @@
     <script src="build/App.js"></script>
     <script>
       (function() {
-        var node = document.getElementById('main');
-        Elm.Main.embed(node);
+        
+        var loadMore = function () {
+          return $(window).scrollTop() === $(document).height() - $(window).height() 
+        };
+
+        var node  = document.getElementById('main');
+        var myApp = Elm.Main.embed(node);
+
+        $(window).bind('scroll', function () {
+          var isBottom = loadMore();
+          myApp.ports.scroll.send(isBottom);
+        });
+
       })();
     </script>
   </body>
