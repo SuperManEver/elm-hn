@@ -1,7 +1,7 @@
 module StoryItem exposing (..)
 
-import Html exposing (..)
-import Html.Attributes exposing (class)
+import Html exposing (Html, div, a, text)
+import Html.Attributes as Attr exposing (class, target)
 import Task exposing (Task, perform)
 import Json.Decode as Json exposing ((:=))
 import Http exposing (Error)
@@ -93,7 +93,7 @@ update msg model =
 viewItem : Model -> Html Msg
 viewItem {title, url} = 
   div [ class "story-item" ] 
-    [ p [] [ text title ] 
+    [ a [ target "_blank", Attr.href url ] [ text title ] 
     ]
 
 view : List Model -> Html Msg 
