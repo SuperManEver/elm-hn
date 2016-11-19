@@ -113,18 +113,6 @@ update msg model =
       else update NoOp model
 
 
-{--
-
--- VIEW 
-scrollTop : Json.Decoder Int
-scrollTop =
-  Json.at [ "target", "scrollingElement", "scrollTop" ] Json.int
-
-onScroll : (Int -> Msg) -> Attribute Msg 
-onScroll tagger = 
-  on "scroll" (Json.map tagger scrollTop)
---}  
-
 -- SUBSCRIPTIONS
 subscriptions : Model -> Sub Msg 
 subscriptions model = 
@@ -138,6 +126,5 @@ view model =
       App.map StoryMsg (StoryItem.view model.stories)
   in
     div [ class "main-container" ] 
-      [ button [ onClick LoadMoreStories ] [ text "Load More" ]
-      , stories
+      [ stories
       ]
