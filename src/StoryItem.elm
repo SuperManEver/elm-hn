@@ -15,6 +15,7 @@ type alias Model =
   { id : Int 
   , title : String 
   , url : String
+  , saved : Bool
   }
 
 createStory : Int -> Model
@@ -22,6 +23,7 @@ createStory id =
   { id = id
   , title = "Loading"
   , url = ""
+  , saved = False
   }
 
 defaultModel : Model 
@@ -29,16 +31,18 @@ defaultModel =
   { id = 1 
   , title = ""
   , url = ""
+  , saved = False
   }
 
 
 -- COMMANDS
 decoder : Json.Decoder Model
 decoder = 
-  Json.object3 Model
+  Json.object4 Model
     ("id" := Json.int)
     ("title" := Json.string)
     ("url" := Json.string)
+    (Json.succeed False)
 
 
 item : Int -> Task Error Model
@@ -84,7 +88,7 @@ update msg model =
 
       StoryLoaded id item -> 
         let  
-          stories = updateModel (\ val -> item) id model
+          stories = updateModel (\ val -> item ) id model
         in
           stories ! []
 
