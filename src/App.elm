@@ -7,9 +7,6 @@ import Http exposing (Error)
 import Task exposing (Task, perform)
 import Json.Decode as Json exposing ((:=))
 import StoryItem
-import Window exposing (height)
-import Basics.Extra exposing (never)
-import String exposing (concat)
 import SideBar 
 import Dict exposing (Dict)
 
