@@ -16,7 +16,6 @@ import Dict exposing (Dict)
 -- routing 
 import Navigation
 import Router exposing (toHash, hashParser, pageParser, Route)
--- import UrlParser as Url exposing (Parser, (</>), format, int, oneOf, s, string)
 
 import Ports exposing (..)
 
@@ -72,7 +71,6 @@ defaultModel =
 -- INIT  
 init : Result String Route -> (Model, Cmd Msg)
 init result = 
-  -- defaultModel ! [ loadLatests ]
   urlUpdate result (defaultModel) 
 
 
@@ -96,6 +94,7 @@ type Msg
   | LoadMoreStories
   | Scroll Bool
   | SideBarMsg SideBar.Msg 
+
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model = 
