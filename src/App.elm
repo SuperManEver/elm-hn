@@ -128,39 +128,13 @@ subscriptions model =
 
 
 -- VIEW 
-
 view : Model -> Html Msg
 view model = 
   let 
     stories = App.map StoryMsg (StoryItem.view model.stories)
+    sidebar = App.map SideBarMsg (SideBar.view model.sidebar)
   in
     div [] 
-      [ (App.map SideBarMsg (SideBar.view model.sidebar))
+      [ sidebar 
       , div [ class "main-container" ] [ stories ]
       ]
-
-{--
-sidebar : Model -> Html Msg 
-sidebar {sidebarState} = 
-  let 
-    isOpen = if sidebarState then "open" else ""
-  in
-    aside [ id "sidebar", class isOpen ] 
-      [ (sidebarToggle isOpen)
-      , navigation
-      ]    
-
-navigation : Html Msg 
-navigation = 
-  ul [ class "navigation" ] 
-    [ li [] 
-      [ a [ class "link", href "#home" ] [ text "Top stories" ]
-      , a [ class "link", href "#saved" ] [ text "Bookmarks" ]
-      ]
-    ]      
-
-sidebarToggle : String -> Html Msg 
-sidebarToggle open = 
-    div [ class (concat ["toggle-sidebar", " ", open]), onClick ToggleSidebar ] 
-      [ span [ class "glyphicon glyphicon-align-justify" ] [] ]
---}
