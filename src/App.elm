@@ -11,6 +11,11 @@ import Window exposing (height)
 import Basics.Extra exposing (never)
 import String exposing (concat)
 import SideBar 
+import Dict exposing (Dict)
+
+-- routing 
+import Navigation
+import UrlParser as Url exposing (Parser, (</>), format, int, oneOf, s, string)
 
 import Ports exposing (..)
 
@@ -21,32 +26,85 @@ latestURL = "https://hacker-news.firebaseio.com/v0/topstories.json"
 shift : Int 
 shift = 40
 
+{-- 
+  TODO 
+  + 1. change "main"
+  2. add routes 
+  3. add parser for different routes
+  + 4. change model
+  5. add 'UrlUpdate'
+--}
+
 -- MAIN 
-main = program
+main = 
+  Navigation.program (Navigation.makeParser hashParser)
   { init = init 
   , update = update 
+  , urlUpdate = urlUpdate
   , view = view 
   , subscriptions = subscriptions
   }
+
+
+-- ROUTER 
+toHash : Route -> String
+toHash route =
+  case route of
+    Home ->
+      "#home"
+
+    Saved -> 
+      "#saved"    
+
+hashParser : Navigation.Location -> Result String Route 
+hashParser location = 
+  Url.parse identity pageParser (String.dropLeft 1 location.hash)
+
+type Route 
+  = Home 
+  | Saved
+
+pageParser : Parser (Route -> a) a
+pageParser =
+  oneOf
+    [ format Home (Url.s "home")
+    , format Saved (Url.s "saved")
+    ]
+
+urlUpdate : Result String Route -> Model -> (Model, Cmd Msg)
+urlUpdate result model =
+  case Debug.log "result" result of
+    Err _ ->
+      ( model, Navigation.modifyUrl (toHash model.route) ) 
+
+    Ok route ->
+      { model | route = route } ! [ loadLatests ]
 
 -- MODEL 
 type alias Model = 
   { storiesIds : List Int
   , stories : List StoryItem.Model
   , sidebar : SideBar.Model
+  , route : Route 
+  , cache : Dict String (List String)
   }
+
 
 defaultModel : Model 
 defaultModel = 
   { storiesIds = []
   , stories = []
   , sidebar = SideBar.defaultModel
+  , route = Home
+  , cache = Dict.empty
   }  
 
+
 -- INIT  
-init : (Model, Cmd Msg)
-init = 
-  defaultModel ! [ loadLatests ]
+init : Result String Route -> (Model, Cmd Msg)
+init result = 
+  -- defaultModel ! [ loadLatests ]
+  urlUpdate result (defaultModel) 
 
 
 -- COMMANDS
