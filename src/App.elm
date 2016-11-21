@@ -14,7 +14,8 @@ import String exposing (concat)
 import Ports exposing (..)
 
 latestURL : String 
-latestURL = "https://hacker-news.firebaseio.com/v0/newstories.json"
+-- latestURL = "https://hacker-news.firebaseio.com/v0/newstories.json"
+latestURL = "https://hacker-news.firebaseio.com/v0/topstories.json"
 
 shift : Int 
 shift = 40
@@ -136,8 +137,7 @@ subscriptions model =
 view : Model -> Html Msg
 view model = 
   let 
-    stories = 
-      App.map StoryMsg (StoryItem.view model.stories)
+    stories = App.map StoryMsg (StoryItem.view model.stories)
   in
     div [] 
       [ sidebar model
