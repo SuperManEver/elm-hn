@@ -27,7 +27,7 @@ update msg model =
       model ! []
 
     Toggle ->
-      model ! []
+      {model | state = not model.state} ! []
 
 
 -- VIEW 

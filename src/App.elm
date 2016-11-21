@@ -33,14 +33,14 @@ main = program
 type alias Model = 
   { storiesIds : List Int
   , stories : List StoryItem.Model
-  , sidebarState : Bool
+  , sidebar : SideBar.Model
   }
 
 defaultModel : Model 
 defaultModel = 
   { storiesIds = []
   , stories = []
-  , sidebarState = True
+  , sidebar = SideBar.defaultModel
   }  
 
 -- INIT  
@@ -68,7 +68,7 @@ type Msg
   | StoryMsg StoryItem.Msg 
   | LoadMoreStories
   | Scroll Bool
-  | ToggleSidebar
+  | SideBarMsg SideBar.Msg 
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model = 
@@ -114,14 +114,18 @@ update msg model =
       then update LoadMoreStories model 
       else update NoOp model
 
-    ToggleSidebar -> 
-      { model | sidebarState = not model.sidebarState } ! []
+    SideBarMsg subMsg -> 
+      let
+        (updatedSidebar, sidebarCmd) = SideBar.update subMsg model.sidebar
+      in 
+        {model | sidebar = updatedSidebar} ! [ Cmd.map SideBarMsg sidebarCmd ]
 
 
 -- SUBSCRIPTIONS
 subscriptions : Model -> Sub Msg 
 subscriptions model = 
   scroll Scroll
+
 
 -- VIEW 
 
@@ -131,7 +135,8 @@ view model =
     stories = App.map StoryMsg (StoryItem.view model.stories)
   in
     div [] 
-      [ div [ class "main-container" ] [ stories ]
+      [ (App.map SideBarMsg (SideBar.view model.sidebar))
+      , div [ class "main-container" ] [ stories ]
       ]
 
 {--
