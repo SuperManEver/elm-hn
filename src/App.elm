@@ -15,7 +15,8 @@ import Dict exposing (Dict)
 
 -- routing 
 import Navigation
-import UrlParser as Url exposing (Parser, (</>), format, int, oneOf, s, string)
+import Router exposing (toHash, hashParser, pageParser, Route)
+-- import UrlParser as Url exposing (Parser, (</>), format, int, oneOf, s, string)
 
 import Ports exposing (..)
 
@@ -38,30 +39,6 @@ main =
 
 
 -- ROUTER 
-toHash : Route -> String
-toHash route =
-  case route of
-    Home ->
-      "#home"
-
-    Saved -> 
-      "#saved"    
-
-hashParser : Navigation.Location -> Result String Route 
-hashParser location = 
-  Url.parse identity pageParser (String.dropLeft 1 location.hash)
-
-type Route 
-  = Home 
-  | Saved
-
-pageParser : Parser (Route -> a) a
-pageParser =
-  oneOf
-    [ format Home (Url.s "home")
-    , format Saved (Url.s "saved")
-    ]
-
 urlUpdate : Result String Route -> Model -> (Model, Cmd Msg)
 urlUpdate result model =
   case Debug.log "result" result of
@@ -70,6 +47,7 @@ urlUpdate result model =
 
     Ok route ->
       { model | route = route } ! [ loadLatests ]
+
 
 -- MODEL 
 type alias Model = 
@@ -86,7 +64,7 @@ defaultModel =
   { storiesIds = []
   , stories = []
   , sidebar = SideBar.defaultModel
-  , route = Home
+  , route = Router.defaultRoute
   , cache = Dict.empty
   }  
 
