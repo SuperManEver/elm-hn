@@ -29,10 +29,10 @@ shift = 40
 {-- 
   TODO 
   + 1. change "main"
-  2. add routes 
-  3. add parser for different routes
+  + 2. add routes 
+  + 3. add parser for different routes
   + 4. change model
-  5. add 'UrlUpdate'
+  + 5. add 'UrlUpdate'
 --}
 
 -- MAIN 
