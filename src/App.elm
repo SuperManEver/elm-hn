@@ -10,6 +10,7 @@ import StoryItem
 import Window exposing (height)
 import Basics.Extra exposing (never)
 import String exposing (concat)
+import SideBar 
 
 import Ports exposing (..)
 
@@ -27,9 +28,6 @@ main = program
   , view = view 
   , subscriptions = subscriptions
   }
-
-
-
 
 -- MODEL 
 type alias Model = 
@@ -69,8 +67,6 @@ type Msg
   | LatestLoaded (List Int)
   | StoryMsg StoryItem.Msg 
   | LoadMoreStories
-  | GetWindowHeight
-  | WindowHeight Int
   | Scroll Bool
   | ToggleSidebar
 
@@ -112,13 +108,7 @@ update msg model =
         , stories = model.stories ++ newStories
         } 
         ! [ Cmd.map StoryMsg (StoryItem.loadStories current)]
-
-    WindowHeight height -> 
-      model ! []
-
-    GetWindowHeight -> 
-      model ! [perform never WindowHeight Window.height]
-
+   
     Scroll pos -> 
       if pos 
       then update LoadMoreStories model 
@@ -133,6 +123,7 @@ subscriptions : Model -> Sub Msg
 subscriptions model = 
   scroll Scroll
 
+-- VIEW 
 
 view : Model -> Html Msg
 view model = 
@@ -140,10 +131,10 @@ view model =
     stories = App.map StoryMsg (StoryItem.view model.stories)
   in
     div [] 
-      [ sidebar model
-      , div [ class "main-container" ] [ stories ]
+      [ div [ class "main-container" ] [ stories ]
       ]
 
+{--
 sidebar : Model -> Html Msg 
 sidebar {sidebarState} = 
   let 
@@ -167,3 +158,4 @@ sidebarToggle : String -> Html Msg
 sidebarToggle open = 
     div [ class (concat ["toggle-sidebar", " ", open]), onClick ToggleSidebar ] 
       [ span [ class "glyphicon glyphicon-align-justify" ] [] ]
+--}
