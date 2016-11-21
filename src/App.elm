@@ -1,7 +1,7 @@
 import Html exposing (..)
 import Html.App as App exposing (program)
 import Html.Events exposing (onClick, on)
-import Html.Attributes exposing (class)
+import Html.Attributes exposing (class, id)
 import String exposing (concat)
 import Http exposing (Error)
 import Task exposing (Task, perform)
@@ -125,6 +125,8 @@ view model =
     stories = 
       App.map StoryMsg (StoryItem.view model.stories)
   in
-    div [ class "main-container" ] 
-      [ stories
+    div [] 
+      [ aside [ id "sidebar" ] []
+      , div [ class "main-container" ] [ stories ]
       ]
+    
