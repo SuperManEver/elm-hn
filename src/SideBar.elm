@@ -1,4 +1,5 @@
 module SideBar exposing (..)
+
 import Html exposing (Html, div, ul, li, a, text, aside, span)
 import Html.Attributes exposing (class, id, href)
 import Html.Events exposing (onClick)
