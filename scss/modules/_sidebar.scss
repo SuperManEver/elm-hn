@@ -1,11 +1,15 @@
+$sidebar_width : 220px;
+$sidebar_bg : #B6D5D9;
+$toggle_size : 30px;
+
 #sidebar {
   position: fixed;
   top : 0;
-  left : -270px;
+  left : -$sidebar_width;
   z-index : 10;
-  background: #7B9DB1;
+  background: $sidebar_bg;
   height : 100%;
-  width : 270px;
+  width : $sidebar_width;
   transition: all 0.3s ease;
 
   &.open {
@@ -15,15 +19,15 @@
   .toggle-sidebar {
     position: fixed;
     left : 0;
-    width : 30px;
-    height : 30px;
+    width : $toggle_size;
+    height : $toggle_size;
     background : #7B9DB1;
-    padding : 4px 5px;
+    padding : 6px 7px;
     transition: all 0.3s ease;
 
     &.open {
-      left : 270px;
-      background: #F28C70;
+      left : $sidebar_width;
+      background : #235777;
     }
 
     &:hover {
@@ -32,9 +36,31 @@
 
     .glyphicon {
       color : white;
-      font-size : 1.2em;
+      font-size : 1em;
     }
 
   } // .toggle-sidebar
 
-}
+  ul.navigation {
+    li {
+      a.link {
+        display: block;
+        text-decoration : none;
+        padding : 10px 0;
+        color : #0F4058;
+        border-left: 4px solid transparent;
+        padding-left: 12px;
+        font-size : 0.86em;
+        font-weight : bold;
+
+        &:hover {
+          background : rgba(6, 150, 225, 0.3);
+          // background: #235777;
+          border-left : 4px solid #235777;
+          color : white;
+        }
+      }
+    } // li
+  } // ul 
+
+} // #sidebar

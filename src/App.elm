@@ -1,7 +1,7 @@
 import Html exposing (..)
 import Html.App as App exposing (program)
 import Html.Events exposing (onClick, on)
-import Html.Attributes exposing (class, id)
+import Html.Attributes exposing (class, id, href)
 import String exposing (concat)
 import Http exposing (Error)
 import Task exposing (Task, perform)
@@ -42,7 +42,7 @@ defaultModel : Model
 defaultModel = 
   { storiesIds = []
   , stories = []
-  , sidebarState = False
+  , sidebarState = True
   }  
 
 -- INIT  
@@ -145,13 +145,25 @@ view model =
       ]
 
 sidebar : Model -> Html Msg 
-sidebar model = 
+sidebar {sidebarState} = 
   let 
-    isOpen = if model.sidebarState then "open" else ""
+    isOpen = if sidebarState then "open" else ""
   in
     aside [ id "sidebar", class isOpen ] 
-      [ div [ class (concat ["toggle-sidebar", " ", isOpen]), onClick ToggleSidebar ] 
-        [ span [ class "glyphicon glyphicon-align-justify" ] []
-        ]
+      [ (sidebarToggle isOpen)
+      , navigation
       ]    
-    
+
+navigation : Html Msg 
+navigation = 
+  ul [ class "navigation" ] 
+    [ li [] 
+      [ a [ class "link", href "#home" ] [ text "Top stories" ]
+      , a [ class "link", href "#saved" ] [ text "Bookmarks" ]
+      ]
+    ]      
+
+sidebarToggle : String -> Html Msg 
+sidebarToggle open = 
+    div [ class (concat ["toggle-sidebar", " ", open]), onClick ToggleSidebar ] 
+      [ span [ class "glyphicon glyphicon-align-justify" ] [] ]
