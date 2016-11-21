@@ -52,6 +52,7 @@ urlUpdate result model =
 type alias Model = 
   { storiesIds : List Int
   , stories : List StoryItem.Model
+  , saved : List StoryItem.Model
   , sidebar : SideBar.Model
   , route : Route 
   , cache : Dict String (List String)
@@ -62,6 +63,7 @@ defaultModel : Model
 defaultModel = 
   { storiesIds = []
   , stories = []
+  , saved = []
   , sidebar = SideBar.defaultModel
   , route = Router.defaultRoute
   , cache = Dict.empty
@@ -157,7 +159,14 @@ subscriptions model =
 view : Model -> Html Msg
 view model = 
   let 
-    stories = App.map StoryMsg (StoryItem.view model.stories)
+    stories = 
+      case model.route of 
+        Router.Home -> 
+          App.map StoryMsg (StoryItem.view model.stories)
+
+        Router.Saved -> 
+          App.map StoryMsg (StoryItem.view model.saved)
+
     sidebar = App.map SideBarMsg (SideBar.view model.sidebar)
   in
     div [] 

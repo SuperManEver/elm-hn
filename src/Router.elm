@@ -1,4 +1,4 @@
-module Router exposing (..)
+module Router exposing (toHash, hashParser, Route(..), defaultRoute, pageParser)
 
 import Navigation
 import UrlParser as Url exposing (Parser, (</>), format, int, oneOf, s, string)
