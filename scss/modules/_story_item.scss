@@ -9,4 +9,13 @@
     font-size : 0.86em;
     text-decoration: none;
   }
+
+  .glyphicon {
+    font-size : 0.76em;
+    color : darkGray;
+    &:hover {
+      cursor : pointer;
+      color : Gray;
+    }
+  }
 }
