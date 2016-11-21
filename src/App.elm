@@ -26,15 +26,6 @@ latestURL = "https://hacker-news.firebaseio.com/v0/topstories.json"
 shift : Int 
 shift = 40
 
-{-- 
-  TODO 
-  + 1. change "main"
-  + 2. add routes 
-  + 3. add parser for different routes
-  + 4. change model
-  + 5. add 'UrlUpdate'
---}
-
 -- MAIN 
 main = 
   Navigation.program (Navigation.makeParser hashParser)
