@@ -1,3 +1,40 @@
 #sidebar {
-  
+  position: fixed;
+  top : 0;
+  left : -270px;
+  z-index : 10;
+  background: #7B9DB1;
+  height : 100%;
+  width : 270px;
+  transition: all 0.3s ease;
+
+  &.open {
+    left : 0px;
+  }
+
+  .toggle-sidebar {
+    position: fixed;
+    left : 0;
+    width : 30px;
+    height : 30px;
+    background : #7B9DB1;
+    padding : 4px 5px;
+    transition: all 0.3s ease;
+
+    &.open {
+      left : 270px;
+      background: #F28C70;
+    }
+
+    &:hover {
+      cursor : pointer;
+    }
+
+    .glyphicon {
+      color : white;
+      font-size : 1.2em;
+    }
+
+  } // .toggle-sidebar
+
 }

@@ -9,6 +9,7 @@ import Json.Decode as Json exposing ((:=))
 import StoryItem
 import Window exposing (height)
 import Basics.Extra exposing (never)
+import String exposing (concat)
 
 import Ports exposing (..)
 
@@ -27,27 +28,26 @@ main = program
   }
 
 
--- INIT  
-init : (Model, Cmd Msg)
-init = 
-  Model [] [] ! [ loadLatests ]
 
 
 -- MODEL 
 type alias Model = 
   { storiesIds : List Int
   , stories : List StoryItem.Model
+  , sidebarState : Bool
   }
 
-type Msg 
-  = NoOp
-  | LatestFailed Http.Error
-  | LatestLoaded (List Int)
-  | StoryMsg StoryItem.Msg 
-  | LoadMoreStories
-  | GetWindowHeight
-  | WindowHeight Int
-  | Scroll Bool
+defaultModel : Model 
+defaultModel = 
+  { storiesIds = []
+  , stories = []
+  , sidebarState = False
+  }  
+
+-- INIT  
+init : (Model, Cmd Msg)
+init = 
+  defaultModel ! [ loadLatests ]
 
 
 -- COMMANDS
@@ -62,6 +62,17 @@ loadLatests =
 
 
 -- UPDATE 
+type Msg 
+  = NoOp
+  | LatestFailed Http.Error
+  | LatestLoaded (List Int)
+  | StoryMsg StoryItem.Msg 
+  | LoadMoreStories
+  | GetWindowHeight
+  | WindowHeight Int
+  | Scroll Bool
+  | ToggleSidebar
+
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model = 
   case msg of 
@@ -112,6 +123,9 @@ update msg model =
       then update LoadMoreStories model 
       else update NoOp model
 
+    ToggleSidebar -> 
+      { model | sidebarState = not model.sidebarState } ! []
+
 
 -- SUBSCRIPTIONS
 subscriptions : Model -> Sub Msg 
@@ -126,7 +140,18 @@ view model =
       App.map StoryMsg (StoryItem.view model.stories)
   in
     div [] 
-      [ aside [ id "sidebar" ] []
+      [ sidebar model
       , div [ class "main-container" ] [ stories ]
       ]
+
+sidebar : Model -> Html Msg 
+sidebar model = 
+  let 
+    isOpen = if model.sidebarState then "open" else ""
+  in
+    aside [ id "sidebar", class isOpen ] 
+      [ div [ class (concat ["toggle-sidebar", " ", isOpen]), onClick ToggleSidebar ] 
+        [ span [ class "glyphicon glyphicon-align-justify" ] []
+        ]
+      ]    
     
