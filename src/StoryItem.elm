@@ -2,6 +2,7 @@ module StoryItem exposing (..)
 
 import Html exposing (Html, div, a, text, button, span)
 import Html.Attributes as Attr exposing (class, target)
+import Html.Events exposing (onClick)
 import Task exposing (Task, perform)
 import Json.Decode as Json exposing ((:=))
 import Http exposing (Error)
@@ -71,6 +72,8 @@ type Msg
   = NoOp
   | StoryFailed Int Http.Error
   | StoryLoaded Int Model
+  | SaveStory Model
+  | RemoveStory Int
 
 
 update : Msg -> List Model -> (List Model, Cmd Msg)
@@ -92,14 +95,27 @@ update msg model =
         in
           stories ! []
 
+      SaveStory item -> 
+        model ! [] -- intercepted by parent
+
+      RemoveStory id -> 
+        model ! []
+
 
 -- VIEW 
 viewItem : Model -> Html Msg
-viewItem {title, url} = 
-  div [ class "story-item" ] 
-    [ a [ target "_blank", Attr.href url ] [ text title ] 
-    , span [ class "glyphicon glyphicon-bookmark pull-right" ] []
-    ]
+viewItem story = 
+  let 
+    action = 
+      if story.saved 
+      then span [ class "glyphicon glyphicon-trash pull-right", onClick (RemoveStory story.id) ] []
+      else span [ class "glyphicon glyphicon-bookmark pull-right", onClick (SaveStory story) ] []
+
+  in 
+    div [ class "story-item" ] 
+      [ a [ target "_blank", Attr.href story.url ] [ text story.title ] 
+      , action
+      ]
 
 view : List Model -> Html Msg 
 view stories = 

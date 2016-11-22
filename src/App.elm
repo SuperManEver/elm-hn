@@ -117,10 +117,25 @@ update msg model =
         ! [ Cmd.map StoryMsg (StoryItem.loadStories current) ]
 
     StoryMsg subMsg -> 
-      let 
-        (updatedItems, storyItemCmd) = StoryItem.update subMsg model.stories
-      in
-        {model | stories = updatedItems} ! [ Cmd.map StoryMsg storyItemCmd ]
+      case subMsg of
+        StoryItem.SaveStory item -> 
+          { model 
+          | saved   = { item | saved = not item.saved }::model.saved
+          , stories = List.filter (\ story -> not (story.id == item.id)) model.stories
+          } ! [] 
+
+        StoryItem.RemoveStory id -> 
+          { model 
+          | 
+          saved = List.filter (\ story -> not (story.id == id)) model.saved
+          } ! []
+
+        _ -> 
+          let 
+            (updatedItems, storyItemCmd) = StoryItem.update subMsg model.stories
+          in
+            {model | stories = updatedItems} ! [ Cmd.map StoryMsg storyItemCmd ]
+
 
     LoadMoreStories -> 
       let 
