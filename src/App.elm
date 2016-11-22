@@ -156,17 +156,20 @@ subscriptions model =
 view : Model -> Html Msg
 view model = 
   let 
-    stories = 
-      case model.route of 
-        Router.Home -> 
-          App.map StoryMsg (StoryItem.view model.stories)
-
-        Router.Saved -> 
-          App.map StoryMsg (StoryItem.view model.saved)
-
+    stories = filterStories model
     sidebar = App.map SideBarMsg (SideBar.view model.sidebar)
   in
     div [] 
       [ sidebar 
       , div [ class "main-container" ] [ stories ]
       ]
+
+
+filterStories : Model -> Html Msg
+filterStories {stories, saved, route} = 
+  case route of 
+    Router.Home -> 
+      App.map StoryMsg (StoryItem.view stories)
+
+    Router.Saved -> 
+      App.map StoryMsg (StoryItem.view saved)
