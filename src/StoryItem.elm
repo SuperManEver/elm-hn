@@ -115,9 +115,8 @@ viewItem story =
       , action
       ]
 
-view : List Model -> Html Msg 
+view : List Model -> List (Html Msg)
 view stories = 
   stories 
     |> List.map viewItem
-    |> div [] 
 
