@@ -46,18 +46,16 @@ decoder =
     (Json.succeed False)
 
 
-item : Int -> Task Error Model
-item id = 
+itemLoadTask : Int -> Task Error Model
+itemLoadTask id = 
   Http.get decoder <| concat [ itemUrl, toString id, ".json" ]
-
+ 
 
 loadStory : Int -> Cmd Msg 
 loadStory id = 
-  let 
-    storyLoaded id model = StoryLoaded id model
-    storyFailed id error = StoryFailed id error
-  in
-    perform (storyFailed id) (storyLoaded id) <| item id
+  id 
+    |> itemLoadTask
+    |> perform (StoryFailed id) (StoryLoaded id) 
 
 
 loadStories : List Int -> Cmd Msg
@@ -119,7 +117,7 @@ viewItem story =
 
 view : List Model -> Html Msg 
 view stories = 
-  let 
-    xs = List.map (\ story -> viewItem story) stories
-  in
-    div [] xs
+  stories 
+    |> List.map viewItem
+    |> div [] 
+
