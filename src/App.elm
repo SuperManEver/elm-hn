@@ -101,8 +101,10 @@ update msg model =
     NoOp -> 
       model ! []
 
+
     LatestFailed error -> 
       model ! []
+
 
     LatestLoaded ids ->
       let 
@@ -115,6 +117,7 @@ update msg model =
         , stories = newStories 
         } 
         ! [ Cmd.map StoryMsg (StoryItem.loadStories current) ]
+
 
     StoryMsg subMsg -> 
       case subMsg of
@@ -149,10 +152,12 @@ update msg model =
         } 
         ! [ Cmd.map StoryMsg (StoryItem.loadStories current)]
    
+
     Scroll pos -> 
       if pos 
       then update LoadMoreStories model 
       else update NoOp model
+
 
     SideBarMsg subMsg -> 
       let
@@ -177,6 +182,7 @@ view model =
       [ sidebar 
       , storyList model
       ]
+
 
 storyList : Model -> Html Msg 
 storyList model = 
