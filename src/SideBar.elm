@@ -1,7 +1,7 @@
 module SideBar exposing (..)
 
 import Html exposing (Html, div, ul, li, a, text, aside, span)
-import Html.Attributes exposing (class, id, href)
+import Html.Attributes exposing (class, id, href, classList)
 import Html.Events exposing (onClick)
 import String exposing (concat)
 
@@ -15,6 +15,12 @@ defaultModel =
   { state = False 
   }
 
+type alias Link = 
+  ( String, String )
+
+
+links : List Link
+links = [ ("Top stories", "#home"), ("Bookmarks", "#saved") ]
 
 -- UPDATE 
 type Msg 
@@ -34,24 +40,34 @@ update msg model =
 -- VIEW 
 view : Model -> Html Msg 
 view {state} = 
-  let 
-    isOpen = if state then "open" else ""
-  in
-    aside [ id "sidebar", class isOpen ] 
-      [ (sidebarToggle isOpen)
-      , navigation
-      ]    
+  aside [ id "sidebar", classList [ ("open", state) ] ] 
+    [ (sidebarToggle state)
+    , navigation links
+    ]    
 
-navigation : Html Msg 
-navigation = 
-  ul [ class "navigation" ] 
-    [ li [] 
-      [ a [ class "link", href "#home" ] [ text "Top stories" ]
-      , a [ class "link", href "#saved" ] [ text "Bookmarks" ]
-      ]
-    ]      
 
-sidebarToggle : String -> Html Msg 
+navigation : List Link -> Html Msg 
+navigation links = 
+  links 
+    |> List.map linkView
+    |> ul [ class "navigation" ]  
+
+
+linkView : Link -> Html Msg 
+linkView (title, url) = 
+  li [] 
+    [ a [ class "link", href url ] [ text title ] 
+    ]
+
+
+sidebarToggle : Bool -> Html Msg 
 sidebarToggle open = 
-    div [ class (concat ["toggle-sidebar", " ", open]), onClick Toggle ] 
+    div 
+      [ 
+        classList [
+          ("toggle-sidebar", True), 
+          ("open", open)
+        ], onClick Toggle 
+      ] 
       [ span [ class "glyphicon glyphicon-align-justify" ] [] ]
+
