@@ -61,7 +61,7 @@ loadStory id =
 loadStories : List Int -> Cmd InternalMsg
 loadStories ids = 
   ids
-    |> List.map (\ id -> loadStory id) 
+    |> List.map loadStory
     |> Cmd.batch 
 
 

@@ -121,13 +121,19 @@ update msg model =
 
     LatestLoaded ids ->
       let 
-        current = List.take shift ids
-        newStories = 
-          List.map (\ id -> StoryItem.createStory id) current  -- posibly can rewrite
+        current = List.take shift ids  -- I think this can be removed after I will change architecture
+        stories' =
+          ids 
+            |> List.take shift
+            |> List.map StoryItem.createStory
       in
-        { model | storiesIds = (List.drop shift ids) , stories = newStories } 
+        { model | storiesIds = (List.drop shift ids) , stories = stories' } 
         !
-        [ Cmd.map StoryMsg (StoryItem.loadStories current) ]
+        [ 
+          current 
+            |> StoryItem.loadStories
+            |> Cmd.map StoryMsg 
+        ]
 
 
     StoryMsg subMsg -> 
@@ -140,15 +146,17 @@ update msg model =
     -- possibly can create some abstraction on LatestLoaded & LoadMoreStories
     LoadMoreStories -> 
       let 
-        current = List.take shift model.storiesIds
-        newStories = 
-          List.map (\ id -> StoryItem.createStory id) current
+        current     = List.take shift model.storiesIds
+        stories'    = List.map (\ id -> StoryItem.createStory id) current
+        storiesIds' = List.drop shift model.storiesIds
       in
-        { model 
-        | storiesIds = (List.drop shift model.storiesIds)
-        , stories = model.stories ++ newStories
-        } 
-        ! [ Cmd.map StoryMsg (StoryItem.loadStories current)]
+        { model | storiesIds = storiesIds', stories = model.stories ++ stories' } 
+        ! 
+        [ 
+          current 
+            |> StoryItem.loadStories 
+            |> Cmd.map StoryMsg 
+        ]
    
 
     Scroll pos -> 
@@ -165,8 +173,11 @@ update msg model =
 
 
     SaveStory story -> 
-      model ! []
-
+      let 
+        stories'  = List.filter (\ s -> not (s.id == story.id)) model.stories
+        saved'    = story::model.saved
+      in
+        { model | stories = stories', saved = saved' } ! []
 
     RemoveStory id -> 
       model ! []
