@@ -25,6 +25,7 @@ latestURL = "https://hacker-news.firebaseio.com/v0/topstories.json"
 shift : Int 
 shift = 40
 
+
 -- MAIN 
 main = 
   Navigation.program (Navigation.makeParser hashParser)
