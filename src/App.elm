@@ -49,7 +49,7 @@ urlUpdate result model =
 
 -- MODEL 
 type alias Model = 
-  { storiesIds : List Int
+  { top_ids : List Int
   , stories : List StoryItem.Model
   , saved : List StoryItem.Model
   , sidebar : SideBar.Model
@@ -60,7 +60,7 @@ type alias Model =
 
 defaultModel : Model 
 defaultModel = 
-  { storiesIds  = []
+  { top_ids     = []
   , stories     = []
   , saved       = []
   , sidebar     = SideBar.defaultModel
@@ -127,7 +127,7 @@ update msg model =
             |> List.take shift
             |> List.map StoryItem.createStory
       in
-        { model | storiesIds = (List.drop shift ids) , stories = stories' } 
+        { model | top_ids = (List.drop shift ids) , stories = stories' } 
         !
         [ 
           current 
@@ -146,11 +146,11 @@ update msg model =
     -- possibly can create some abstraction on LatestLoaded & LoadMoreStories
     LoadMoreStories -> 
       let 
-        current     = List.take shift model.storiesIds
+        current     = List.take shift model.top_ids
         stories'    = List.map (\ id -> StoryItem.createStory id) current
-        storiesIds' = List.drop shift model.storiesIds
+        top_ids' = List.drop shift model.top_ids
       in
-        { model | storiesIds = storiesIds', stories = model.stories ++ stories' } 
+        { model | top_ids = top_ids', stories = model.stories ++ stories' } 
         ! 
         [ 
           current 
