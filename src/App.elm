@@ -19,7 +19,6 @@ import Router exposing (toHash, hashParser, pageParser, Route)
 import Ports exposing (..)
 
 latestURL : String 
--- latestURL = "https://hacker-news.firebaseio.com/v0/newstories.json"
 latestURL = "https://hacker-news.firebaseio.com/v0/topstories.json"
 
 shift : Int 
@@ -28,13 +27,12 @@ shift = 40
 
 -- MAIN 
 main = 
-  Navigation.program (Navigation.makeParser hashParser)
-  { init = init 
-  , update = update 
-  , urlUpdate = urlUpdate
-  , view = view 
-  , subscriptions = subscriptions
-  }
+  program 
+    { init = init 
+    , update = update 
+    , view = view 
+    , subscriptions = subscriptions
+    }  
 
 
 -- ROUTER 
@@ -71,9 +69,9 @@ defaultModel =
 
 
 -- INIT  
-init : Result String Route -> (Model, Cmd Msg)
-init result = 
-  urlUpdate result (defaultModel) 
+init : (Model, Cmd Msg)
+init = 
+  defaultModel ! [ loadLatests ]
 
 
 -- COMMANDS
