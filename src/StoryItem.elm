@@ -12,14 +12,14 @@ itemUrl : String
 itemUrl = "https://hacker-news.firebaseio.com/v0/item/"
 
 -- MODEL 
-type alias Model = 
+type alias Story = 
   { id : Int 
   , title : String 
   , url : String
   , saved : Bool
   }
 
-createStory : Int -> Model
+createStory : Int -> Story
 createStory id = 
   { id = id
   , title = "Loading"
@@ -27,7 +27,7 @@ createStory id =
   , saved = False
   }
 
-defaultModel : Model 
+defaultModel : Story 
 defaultModel = 
   { id = 1 
   , title = ""
@@ -37,16 +37,16 @@ defaultModel =
 
 
 -- COMMANDS
-decoder : Json.Decoder Model
+decoder : Json.Decoder Story
 decoder = 
-  Json.object4 Model
+  Json.object4 Story
     ("id" := Json.int)
     ("title" := Json.string)
     ("url" := Json.string)
     (Json.succeed False)
 
 
-itemLoadTask : Int -> Task Error Model
+itemLoadTask : Int -> Task Error Story
 itemLoadTask id = 
   Http.get decoder <| concat [ itemUrl, toString id, ".json" ]
  
@@ -67,14 +67,14 @@ loadStories ids =
 
 -- UPDATE 
 type OutMsg 
-  = SaveStory Model 
+  = SaveStory Story 
   | RemoveStory Int 
 
 
 type InternalMsg 
   = NoOp 
   | StoryFailed Int Http.Error 
-  | StoryLoaded Int Model
+  | StoryLoaded Int Story
 
 
 type Msg 
@@ -84,7 +84,7 @@ type Msg
 
 type alias TranslationDictionary parentMsg = 
   { onInternalMessage : InternalMsg -> parentMsg 
-  , onSaveStory : Model -> parentMsg 
+  , onSaveStory : Story -> parentMsg 
   , onRemoveStory : Int -> parentMsg
   }
 
@@ -106,7 +106,7 @@ translator { onInternalMessage, onSaveStory, onRemoveStory } msg =
       onRemoveStory id
 
 
-update : InternalMsg -> List Model -> (List Model, Cmd Msg)
+update : InternalMsg -> List Story -> (List Story, Cmd Msg)
 update msg model = 
   let 
     updateModel diff id model = 
@@ -127,13 +127,13 @@ update msg model =
 
 
 -- VIEW 
-view : List Model -> List (Html Msg)
+view : List Story -> List (Html Msg)
 view stories = 
   stories 
     |> List.map viewItem
     
 
-viewItem : Model -> Html Msg
+viewItem : Story -> Html Msg
 viewItem story = 
   let 
     action = 

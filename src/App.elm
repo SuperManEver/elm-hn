@@ -49,8 +49,8 @@ urlUpdate result model =
 -- MODEL 
 type alias Model = 
   { top_ids : List Int
-  , top_stories : List StoryItem.Model
-  , saved : List StoryItem.Model
+  , top_stories : List StoryItem.Story
+  , saved : List StoryItem.Story
   , sidebar : SideBar.Model
   , route : Route 
   , cache : Dict String (List String)
@@ -94,7 +94,7 @@ type Msg
   | LoadMoreStories
   | Scroll Bool
   | SideBarMsg SideBar.Msg 
-  | SaveStory StoryItem.Model 
+  | SaveStory StoryItem.Story
   | RemoveStory Int 
 
 
