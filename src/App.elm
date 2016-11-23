@@ -6,9 +6,11 @@ import String exposing (concat)
 import Http exposing (Error)
 import Task exposing (Task, perform)
 import Json.Decode as Json exposing ((:=))
-import StoryItem
-import SideBar 
 import Dict exposing (Dict)
+
+-- modules
+import SideBar 
+import StoryItem
 
 -- routing 
 import Navigation
@@ -58,12 +60,12 @@ type alias Model =
 
 defaultModel : Model 
 defaultModel = 
-  { storiesIds = []
-  , stories = []
-  , saved = []
-  , sidebar = SideBar.defaultModel
-  , route = Router.defaultRoute
-  , cache = Dict.empty
+  { storiesIds  = []
+  , stories     = []
+  , saved       = []
+  , sidebar     = SideBar.defaultModel
+  , route       = Router.defaultRoute
+  , cache       = Dict.empty
   }  
 
 
@@ -89,10 +91,21 @@ type Msg
   = NoOp
   | LatestFailed Http.Error
   | LatestLoaded (List Int)
-  | StoryMsg StoryItem.Msg 
+  | StoryMsg StoryItem.InternalMsg 
   | LoadMoreStories
   | Scroll Bool
   | SideBarMsg SideBar.Msg 
+  | SaveStory StoryItem.Model 
+  | RemoveStory Int 
+
+
+childTranslator : StoryItem.Translator Msg 
+childTranslator = 
+  StoryItem.translator 
+    { onInternalMessage = StoryMsg
+    , onSaveStory = SaveStory  -- App's level message
+    , onRemoveStory = RemoveStory
+    }
 
 
 update : Msg -> Model -> (Model, Cmd Msg)
@@ -110,36 +123,21 @@ update msg model =
       let 
         current = List.take shift ids
         newStories = 
-          List.map (\ id -> StoryItem.createStory id) current
+          List.map (\ id -> StoryItem.createStory id) current  -- posibly can rewrite
       in
-        {model 
-        | storiesIds = (List.drop shift ids)
-        , stories = newStories 
-        } 
-        ! [ Cmd.map StoryMsg (StoryItem.loadStories current) ]
+        { model | storiesIds = (List.drop shift ids) , stories = newStories } 
+        !
+        [ Cmd.map StoryMsg (StoryItem.loadStories current) ]
 
 
     StoryMsg subMsg -> 
-      case subMsg of
-        StoryItem.SaveStory item -> 
-          { model 
-          | saved   = { item | saved = not item.saved }::model.saved
-          , stories = List.filter (\ story -> not (story.id == item.id)) model.stories
-          } ! [] 
-
-        StoryItem.RemoveStory id -> 
-          { model 
-          | 
-          saved = List.filter (\ story -> not (story.id == id)) model.saved
-          } ! []
-
-        _ -> 
-          let 
-            (updatedItems, storyItemCmd) = StoryItem.update subMsg model.stories
-          in
-            {model | stories = updatedItems} ! [ Cmd.map StoryMsg storyItemCmd ]
+      let 
+        (stories', cmd ) = StoryItem.update subMsg model.stories
+      in
+        { model | stories = stories' } ! [ Cmd.map childTranslator cmd ]
 
 
+    -- possibly can create some abstraction on LatestLoaded & LoadMoreStories
     LoadMoreStories -> 
       let 
         current = List.take shift model.storiesIds
@@ -166,6 +164,14 @@ update msg model =
         {model | sidebar = updatedSidebar} ! [ Cmd.map SideBarMsg sidebarCmd ]
 
 
+    SaveStory story -> 
+      model ! []
+
+
+    RemoveStory id -> 
+      model ! []
+
+
 -- SUBSCRIPTIONS
 subscriptions : Model -> Sub Msg 
 subscriptions model = 
@@ -185,19 +191,9 @@ view model =
 
 
 storyList : Model -> Html Msg 
-storyList model = 
-  model 
-    |> filterStories
+storyList {stories} = 
+  stories
+    |> StoryItem.view 
     |> div [ class "main-container" ] 
-    |> App.map StoryMsg
-
-
-filterStories : Model -> List (Html StoryItem.Msg )
-filterStories {stories, saved, route} = 
-  case route of 
-    Router.Home -> 
-      StoryItem.view stories
-
-    Router.Saved -> 
-      StoryItem.view saved
+    |> App.map childTranslator
 

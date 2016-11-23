@@ -51,14 +51,14 @@ itemLoadTask id =
   Http.get decoder <| concat [ itemUrl, toString id, ".json" ]
  
 
-loadStory : Int -> Cmd Msg 
+loadStory : Int -> Cmd InternalMsg
 loadStory id = 
   id 
     |> itemLoadTask
     |> perform (StoryFailed id) (StoryLoaded id) 
 
 
-loadStories : List Int -> Cmd Msg
+loadStories : List Int -> Cmd InternalMsg
 loadStories ids = 
   ids
     |> List.map (\ id -> loadStory id) 
@@ -66,15 +66,47 @@ loadStories ids =
 
 
 -- UPDATE 
-type Msg 
-  = NoOp
-  | StoryFailed Int Http.Error
+type OutMsg 
+  = SaveStory Model 
+  | RemoveStory Int 
+
+
+type InternalMsg 
+  = NoOp 
+  | StoryFailed Int Http.Error 
   | StoryLoaded Int Model
-  | SaveStory Model
-  | RemoveStory Int
 
 
-update : Msg -> List Model -> (List Model, Cmd Msg)
+type Msg 
+  = ForSelf InternalMsg 
+  | ForParent OutMsg 
+
+
+type alias TranslationDictionary parentMsg = 
+  { onInternalMessage : InternalMsg -> parentMsg 
+  , onSaveStory : Model -> parentMsg 
+  , onRemoveStory : Int -> parentMsg
+  }
+
+-- ????
+type alias Translator parentMsg = 
+  Msg -> parentMsg
+
+-- ????
+translator : TranslationDictionary parentMsg -> Translator parentMsg 
+translator { onInternalMessage, onSaveStory, onRemoveStory } msg = 
+  case msg of 
+    ForSelf internal -> 
+      onInternalMessage internal 
+
+    ForParent (SaveStory item) -> 
+      onSaveStory item 
+
+    ForParent (RemoveStory id) -> 
+      onRemoveStory id
+
+
+update : InternalMsg -> List Model -> (List Model, Cmd Msg)
 update msg model = 
   let 
     updateModel diff id model = 
@@ -93,21 +125,30 @@ update msg model =
         in
           stories ! []
 
-      SaveStory item -> 
-        model ! [] -- intercepted by parent
-
-      RemoveStory id -> 
-        model ! []
-
 
 -- VIEW 
+view : List Model -> List (Html Msg)
+view stories = 
+  stories 
+    |> List.map viewItem
+    
+
 viewItem : Model -> Html Msg
 viewItem story = 
   let 
     action = 
       if story.saved 
-      then span [ class "glyphicon glyphicon-trash pull-right", onClick (RemoveStory story.id) ] []
-      else span [ class "glyphicon glyphicon-bookmark pull-right", onClick (SaveStory story) ] []
+      then 
+        span 
+          [ class "glyphicon glyphicon-trash pull-right"
+          , onClick (ForParent <| RemoveStory story.id) 
+          ] []
+
+      else 
+        span 
+          [ class "glyphicon glyphicon-bookmark pull-right"
+          , onClick (ForParent <| SaveStory story) 
+          ] []
 
   in 
     div [ class "story-item" ] 
@@ -115,8 +156,5 @@ viewItem story =
       , action
       ]
 
-view : List Model -> List (Html Msg)
-view stories = 
-  stories 
-    |> List.map viewItem
+
 
