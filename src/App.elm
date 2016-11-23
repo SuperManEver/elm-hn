@@ -50,7 +50,7 @@ urlUpdate result model =
 -- MODEL 
 type alias Model = 
   { top_ids : List Int
-  , stories : List StoryItem.Model
+  , top_stories : List StoryItem.Model
   , saved : List StoryItem.Model
   , sidebar : SideBar.Model
   , route : Route 
@@ -61,7 +61,7 @@ type alias Model =
 defaultModel : Model 
 defaultModel = 
   { top_ids     = []
-  , stories     = []
+  , top_stories = []
   , saved       = []
   , sidebar     = SideBar.defaultModel
   , route       = Router.defaultRoute
@@ -121,11 +121,11 @@ update msg model =
 
     LatestLoaded ids ->
       let 
-        current   = List.take shift ids  -- I think this can be removed after I will change architecture
-        stories'  = List.map StoryItem.createStory current
-        top_ids'  = List.drop shift ids
+        current       = List.take shift ids  -- I think this can be removed after I will change architecture
+        top_stories'  = List.map StoryItem.createStory current
+        top_ids'      = List.drop shift ids
       in
-        { model | top_ids = top_ids' , stories = stories' } 
+        { model | top_ids = top_ids' , top_stories = top_stories' } 
         !
         [ 
           current 
@@ -136,9 +136,11 @@ update msg model =
 
     StoryMsg subMsg -> 
       let 
-        (stories', cmd ) = StoryItem.update subMsg model.stories
+        (top_stories', cmd ) = StoryItem.update subMsg model.top_stories
       in
-        { model | stories = stories' } ! [ Cmd.map childTranslator cmd ]
+        { model | top_stories = top_stories' } 
+        ! 
+        [ Cmd.map childTranslator cmd ]
 
 
     -- possibly can create some abstraction on LatestLoaded & LoadMoreStories
@@ -146,13 +148,13 @@ update msg model =
       let 
         current  = List.take shift model.top_ids
         top_ids' = List.drop shift model.top_ids
-        stories' =
+        top_stories' =
           current 
             |> List.map StoryItem.createStory
-            |> (++) model.stories 
+            |> (++) model.top_stories 
 
       in
-        { model | top_ids = top_ids', stories = stories' } 
+        { model | top_ids = top_ids', top_stories = top_stories' } 
         ! 
         [ 
           current 
@@ -176,10 +178,10 @@ update msg model =
 
     SaveStory story -> 
       let 
-        stories'  = List.filter (\ s -> not (s.id == story.id)) model.stories
+        top_stories'  = List.filter (\ s -> not (s.id == story.id)) model.top_stories
         saved'    = story::model.saved
       in
-        { model | stories = stories', saved = saved' } ! []
+        { model | top_stories = top_stories', saved = saved' } ! []
 
     RemoveStory id -> 
       model ! []
@@ -204,8 +206,8 @@ view model =
 
 
 storyList : Model -> Html Msg 
-storyList {stories} = 
-  stories
+storyList {top_stories} = 
+  top_stories
     |> StoryItem.view 
     |> div [ class "main-container" ] 
     |> App.map childTranslator
