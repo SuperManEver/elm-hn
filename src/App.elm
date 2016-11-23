@@ -121,13 +121,11 @@ update msg model =
 
     LatestLoaded ids ->
       let 
-        current = List.take shift ids  -- I think this can be removed after I will change architecture
-        stories' =
-          ids 
-            |> List.take shift
-            |> List.map StoryItem.createStory
+        current   = List.take shift ids  -- I think this can be removed after I will change architecture
+        stories'  = List.map StoryItem.createStory current
+        top_ids'  = List.drop shift ids
       in
-        { model | top_ids = (List.drop shift ids) , stories = stories' } 
+        { model | top_ids = top_ids' , stories = stories' } 
         !
         [ 
           current 
@@ -146,11 +144,15 @@ update msg model =
     -- possibly can create some abstraction on LatestLoaded & LoadMoreStories
     LoadMoreStories -> 
       let 
-        current     = List.take shift model.top_ids
-        stories'    = List.map (\ id -> StoryItem.createStory id) current
+        current  = List.take shift model.top_ids
         top_ids' = List.drop shift model.top_ids
+        stories' =
+          current 
+            |> List.map StoryItem.createStory
+            |> (++) model.stories 
+
       in
-        { model | top_ids = top_ids', stories = model.stories ++ stories' } 
+        { model | top_ids = top_ids', stories = stories' } 
         ! 
         [ 
           current 
