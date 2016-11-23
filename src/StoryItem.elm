@@ -7,9 +7,19 @@ import Task exposing (Task, perform)
 import Json.Decode as Json exposing ((:=))
 import Http exposing (Error)
 import String exposing (concat)
+import Dict exposing (Dict)
+import Task exposing (perform)
 
 itemUrl : String 
 itemUrl = "https://hacker-news.firebaseio.com/v0/item/"
+
+latestURL : String 
+latestURL = "https://hacker-news.firebaseio.com/v0/topstories.json"
+
+
+shift : Int 
+shift = 40
+
 
 -- MODEL 
 type alias Story = 
@@ -19,6 +29,24 @@ type alias Story =
   , saved : Bool
   }
 
+
+type alias Model = 
+  { top_ids : List Int
+  , top_stories : List Int
+  , saved_stories : List Int
+  , cached_stories : Dict Int Story
+  }  
+
+
+initModel : Model 
+initModel = 
+  { top_ids = []
+  , top_stories = []
+  , saved_stories = []
+  , cached_stories = Dict.empty
+  }  
+
+
 createStory : Int -> Story
 createStory id = 
   { id = id
@@ -26,6 +54,7 @@ createStory id =
   , url = ""
   , saved = False
   }
+
 
 defaultModel : Story 
 defaultModel = 
@@ -37,8 +66,10 @@ defaultModel =
 
 
 -- COMMANDS
-decoder : Json.Decoder Story
-decoder = 
+
+-- load individual stories
+storyDecoder : Json.Decoder Story
+storyDecoder = 
   Json.object4 Story
     ("id" := Json.int)
     ("title" := Json.string)
@@ -48,65 +79,47 @@ decoder =
 
 itemLoadTask : Int -> Task Error Story
 itemLoadTask id = 
-  Http.get decoder <| concat [ itemUrl, toString id, ".json" ]
+  Http.get storyDecoder <| concat [ itemUrl, toString id, ".json" ]
  
 
-loadStory : Int -> Cmd InternalMsg
+loadStory : Int -> Cmd Msg
 loadStory id = 
   id 
     |> itemLoadTask
     |> perform (StoryFailed id) (StoryLoaded id) 
 
 
-loadStories : List Int -> Cmd InternalMsg
+loadStories : List Int -> Cmd Msg
 loadStories ids = 
   ids
     |> List.map loadStory
     |> Cmd.batch 
 
 
+-- load ids 
+idsDecoder : Json.Decoder (List Int)
+idsDecoder = 
+  Json.list Json.int
+
+
+loadLatests : Cmd Msg
+loadLatests = 
+  Task.perform LatestFailed LatestLoaded (Http.get idsDecoder latestURL) 
+
+
 -- UPDATE 
-type OutMsg 
-  = SaveStory Story 
-  | RemoveStory Int 
-
-
-type InternalMsg 
+type Msg 
   = NoOp 
   | StoryFailed Int Http.Error 
   | StoryLoaded Int Story
+  | LatestFailed Http.Error
+  | LatestLoaded (List Int)
+  | LoadMoreStories Bool
+  | SaveStory Int 
+  | RemoveStory Int
 
 
-type Msg 
-  = ForSelf InternalMsg 
-  | ForParent OutMsg 
-
-
-type alias TranslationDictionary parentMsg = 
-  { onInternalMessage : InternalMsg -> parentMsg 
-  , onSaveStory : Story -> parentMsg 
-  , onRemoveStory : Int -> parentMsg
-  }
-
--- ????
-type alias Translator parentMsg = 
-  Msg -> parentMsg
-
--- ????
-translator : TranslationDictionary parentMsg -> Translator parentMsg 
-translator { onInternalMessage, onSaveStory, onRemoveStory } msg = 
-  case msg of 
-    ForSelf internal -> 
-      onInternalMessage internal 
-
-    ForParent (SaveStory item) -> 
-      onSaveStory item 
-
-    ForParent (RemoveStory id) -> 
-      onRemoveStory id
-
-
-update : InternalMsg -> List Story -> (List Story, Cmd Msg)
+update : Msg -> Model -> (Model, Cmd Msg)
 update msg model = 
   let 
     updateModel diff id model = 
@@ -116,22 +129,69 @@ update msg model =
       NoOp -> 
         model ! []
 
+
       StoryFailed id _ -> 
           model ! []
 
+
       StoryLoaded id item -> 
         let  
-          stories = updateModel (\ val -> item ) id model
+          cached' = Dict.insert id item model.cached_stories
         in
-          stories ! []
+          { model | cached_stories = cached' } ! []
+
+
+      LatestFailed error -> 
+        model ! []
+
+
+      LatestLoaded ids ->
+        let 
+          top_stories'  = List.take shift ids
+          top_ids'      = List.drop shift ids
+        in
+          { model | top_ids = top_ids' , top_stories = top_stories' } 
+          ! 
+          [ loadStories top_stories' ]
+
+
+      LoadMoreStories val -> 
+        if val 
+        then 
+          let 
+            top_ids'      = List.drop shift model.top_ids
+            top_stories'  = List.take shift model.top_ids
+          in
+            { model | top_ids = top_ids', top_stories = model.top_stories ++ top_stories' } 
+            ! 
+            [ loadStories top_stories' ]
+        else 
+          model ! []
+
+
+      SaveStory id -> 
+        model ! []
+
+
+      RemoveStory id -> 
+        model ! []
 
 
 -- VIEW 
-view : List Story -> List (Html Msg)
-view stories = 
-  stories 
-    |> List.map viewItem
-    
+view : Model -> Html Msg
+view model = 
+  let 
+    f = (\ curr acc -> 
+          case curr of 
+            Just item -> item::acc 
+            Nothing -> acc)
+  in 
+    model.top_stories
+      |> List.map (\ id -> Dict.get id model.cached_stories) 
+      |> List.foldr f []
+      |> List.map viewItem 
+      |> div [ class "main-container" ] 
+
 
 viewItem : Story -> Html Msg
 viewItem story = 
@@ -141,13 +201,13 @@ viewItem story =
       then 
         span 
           [ class "glyphicon glyphicon-trash pull-right"
-          , onClick (ForParent <| RemoveStory story.id) 
+          , onClick (RemoveStory story.id) 
           ] []
 
       else 
         span 
           [ class "glyphicon glyphicon-bookmark pull-right"
-          , onClick (ForParent <| SaveStory story) 
+          , onClick (SaveStory story.id) 
           ] []
 
   in 

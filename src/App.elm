@@ -12,18 +12,7 @@ import Dict exposing (Dict)
 import SideBar 
 import StoryItem
 
--- routing 
-import Navigation
-import Router exposing (toHash, hashParser, pageParser, Route)
-
 import Ports exposing (..)
-
-latestURL : String 
-latestURL = "https://hacker-news.firebaseio.com/v0/topstories.json"
-
-shift : Int 
-shift = 40
-
 
 -- MAIN 
 main = 
@@ -35,76 +24,32 @@ main =
     }  
 
 
--- ROUTER 
-urlUpdate : Result String Route -> Model -> (Model, Cmd Msg)
-urlUpdate result model =
-  case Debug.log "result" result of
-    Err _ ->
-      ( model, Navigation.modifyUrl (toHash model.route) ) 
-
-    Ok route ->
-      { model | route = route } ! [ loadLatests ]
-
-
 -- MODEL 
 type alias Model = 
-  { top_ids : List Int
-  , top_stories : List StoryItem.Story
-  , saved : List StoryItem.Story
-  , sidebar : SideBar.Model
-  , route : Route 
-  , cache : Dict String (List String)
+  { sidebar : SideBar.Model
+  , stories : StoryItem.Model
   }
 
 
 defaultModel : Model 
 defaultModel = 
-  { top_ids     = []
-  , top_stories = []
-  , saved       = []
-  , sidebar     = SideBar.defaultModel
-  , route       = Router.defaultRoute
-  , cache       = Dict.empty
+  { sidebar = SideBar.defaultModel
+  , stories = StoryItem.initModel
   }  
 
 
 -- INIT  
 init : (Model, Cmd Msg)
 init = 
-  defaultModel ! [ loadLatests ]
-
-
--- COMMANDS
-idsDecoder : Json.Decoder (List Int)
-idsDecoder = 
-  Json.list Json.int
-
-
-loadLatests : Cmd Msg
-loadLatests = 
-  Task.perform LatestFailed LatestLoaded (Http.get idsDecoder latestURL) 
+  defaultModel ! [ Cmd.map StoryMsg StoryItem.loadLatests ]
 
 
 -- UPDATE 
 type Msg 
   = NoOp
-  | LatestFailed Http.Error
-  | LatestLoaded (List Int)
-  | StoryMsg StoryItem.InternalMsg 
-  | LoadMoreStories
+  | StoryMsg StoryItem.Msg 
   | Scroll Bool
   | SideBarMsg SideBar.Msg 
-  | SaveStory StoryItem.Story
-  | RemoveStory Int 
-
-
-childTranslator : StoryItem.Translator Msg 
-childTranslator = 
-  StoryItem.translator 
-    { onInternalMessage = StoryMsg
-    , onSaveStory = SaveStory  -- App's level message
-    , onRemoveStory = RemoveStory
-    }
 
 
 update : Msg -> Model -> (Model, Cmd Msg)
@@ -113,59 +58,18 @@ update msg model =
     NoOp -> 
       model ! []
 
-
-    LatestFailed error -> 
-      model ! []
-
-
-    LatestLoaded ids ->
-      let 
-        current       = List.take shift ids  -- I think this can be removed after I will change architecture
-        top_stories'  = List.map StoryItem.createStory current
-        top_ids'      = List.drop shift ids
-      in
-        { model | top_ids = top_ids' , top_stories = top_stories' } 
-        !
-        [ 
-          current 
-            |> StoryItem.loadStories
-            |> Cmd.map StoryMsg 
-        ]
-
-
     StoryMsg subMsg -> 
       let 
-        (top_stories', cmd ) = StoryItem.update subMsg model.top_stories
+        (stories', cmd ) = StoryItem.update subMsg model.stories
       in
-        { model | top_stories = top_stories' } 
-        ! 
-        [ Cmd.map childTranslator cmd ]
+        { model | stories = stories' } ! [ Cmd.map StoryMsg cmd ]
 
-
-    -- possibly can create some abstraction on LatestLoaded & LoadMoreStories
-    LoadMoreStories -> 
-      let 
-        current  = List.take shift model.top_ids
-        top_ids' = List.drop shift model.top_ids
-        top_stories' =
-          current 
-            |> List.map StoryItem.createStory
-            |> (++) model.top_stories 
-
-      in
-        { model | top_ids = top_ids', top_stories = top_stories' } 
-        ! 
-        [ 
-          current 
-            |> StoryItem.loadStories 
-            |> Cmd.map StoryMsg 
-        ]
-   
 
     Scroll pos -> 
-      if pos 
-      then update LoadMoreStories model 
-      else update NoOp model
+      let
+        (stories', cmd) = StoryItem.update (StoryItem.LoadMoreStories pos) model.stories
+      in 
+        {model | stories = stories'} ! [ Cmd.map StoryMsg cmd ]
 
 
     SideBarMsg subMsg -> 
@@ -173,17 +77,6 @@ update msg model =
         (updatedSidebar, sidebarCmd) = SideBar.update subMsg model.sidebar
       in 
         {model | sidebar = updatedSidebar} ! [ Cmd.map SideBarMsg sidebarCmd ]
-
-
-    SaveStory story -> 
-      let 
-        top_stories'  = List.filter (\ s -> not (s.id == story.id)) model.top_stories
-        saved'    = story::model.saved
-      in
-        { model | top_stories = top_stories', saved = saved' } ! []
-
-    RemoveStory id -> 
-      model ! []
 
 
 -- SUBSCRIPTIONS
@@ -197,17 +90,11 @@ view : Model -> Html Msg
 view model = 
   let 
     sidebar = App.map SideBarMsg (SideBar.view model.sidebar)
+    stories = App.map StoryMsg (StoryItem.view model.stories)
   in
     div [] 
       [ sidebar 
-      , storyList model
+      , stories
       ]
 
-
-storyList : Model -> Html Msg 
-storyList {top_stories} = 
-  top_stories
-    |> StoryItem.view 
-    |> div [ class "main-container" ] 
-    |> App.map childTranslator
 
