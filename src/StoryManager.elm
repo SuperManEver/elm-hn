@@ -37,26 +37,6 @@ initModel =
   , cached_stories = Dict.empty
   }  
 
--- COMMANDS
-
-loadStories : List Int -> Cmd Msg
-loadStories ids = 
-  ids
-    |> List.map Story.loadStory
-    |> Cmd.batch 
-    |> Cmd.map childTranslator
-
-
--- load ids 
-idsDecoder : Json.Decoder (List Int)
-idsDecoder = 
-  Json.list Json.int
-
-
-loadLatests : Cmd Msg
-loadLatests = 
-  Task.perform LatestFailed LatestLoaded (Http.get idsDecoder latestURL) 
-
 
 -- UPDATE 
 type Msg 
@@ -169,6 +149,25 @@ view model =
       |> App.map childTranslator
 
 
+-- COMMANDS
+
+loadStories : List Int -> Cmd Msg
+loadStories ids = 
+  ids
+    |> List.map Story.loadStory
+    |> Cmd.batch 
+    |> Cmd.map childTranslator
+
+
+-- load ids 
+idsDecoder : Json.Decoder (List Int)
+idsDecoder = 
+  Json.list Json.int
+
+
+loadLatests : Cmd Msg
+loadLatests = 
+  Task.perform LatestFailed LatestLoaded (Http.get idsDecoder latestURL) 
 
 
 
