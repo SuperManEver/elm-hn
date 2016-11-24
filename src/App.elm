@@ -10,7 +10,7 @@ import Dict exposing (Dict)
 
 -- modules
 import SideBar 
-import StoryItem
+import StoryManager
 
 import Ports exposing (..)
 
@@ -27,27 +27,27 @@ main =
 -- MODEL 
 type alias Model = 
   { sidebar : SideBar.Model
-  , stories : StoryItem.Model
+  , stories : StoryManager.Model
   }
 
 
 defaultModel : Model 
 defaultModel = 
   { sidebar = SideBar.defaultModel
-  , stories = StoryItem.initModel
+  , stories = StoryManager.initModel
   }  
 
 
 -- INIT  
 init : (Model, Cmd Msg)
 init = 
-  defaultModel ! [ Cmd.map StoryMsg StoryItem.loadLatests ]
+  defaultModel ! [ Cmd.map StoryMsg StoryManager.loadLatests ]
 
 
 -- UPDATE 
 type Msg 
   = NoOp
-  | StoryMsg StoryItem.Msg 
+  | StoryMsg StoryManager.Msg 
   | Scroll Bool
   | SideBarMsg SideBar.Msg 
 
@@ -67,14 +67,14 @@ update msg model =
 
     StoryMsg subMsg -> 
       let 
-        (stories', cmd ) = StoryItem.update subMsg model.stories
+        (stories', cmd ) = StoryManager.update subMsg model.stories
       in
         { model | stories = stories' } ! [ Cmd.map StoryMsg cmd ]
 
 
     Scroll pos -> 
       let
-        (stories', cmd) = StoryItem.update (StoryItem.Scroll pos) model.stories
+        (stories', cmd) = StoryManager.update (StoryManager.Scroll pos) model.stories
       in 
         { model | stories = stories' } ! [ Cmd.map StoryMsg cmd ]
 
@@ -97,7 +97,7 @@ view : Model -> Html Msg
 view model = 
   let 
     sidebar = App.map SideBarMsg (SideBar.view model.sidebar)
-    stories = App.map StoryMsg (StoryItem.view model.stories)
+    stories = App.map StoryMsg (StoryManager.view model.stories)
   in
     div [] 
       [ sidebar 

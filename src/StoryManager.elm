@@ -1,4 +1,4 @@
-module StoryItem exposing (..)
+module StoryManager exposing (..)
 
 import Html exposing (Html, div, a, text, button, span)
 import Html.Attributes as Attr exposing (class, target)
