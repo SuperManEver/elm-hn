@@ -207,12 +207,14 @@ viewItem story =
       , action
       ]
 
+
 itemView : Story -> Html Msg 
 itemView story = 
   span 
     [ class "glyphicon glyphicon-bookmark pull-right"
     , onClick <| SaveStory story.id
     ] []
+
 
 itemSavedView : Story -> Html Msg 
 itemSavedView story = 
