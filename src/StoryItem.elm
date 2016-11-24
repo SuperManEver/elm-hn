@@ -199,23 +199,28 @@ viewItem story =
   let 
     action = 
       if story.saved 
-      then 
-        span 
-          [ class "glyphicon glyphicon-trash pull-right"
-          , onClick (RemoveStory story.id) 
-          ] []
-
-      else 
-        span 
-          [ class "glyphicon glyphicon-bookmark pull-right"
-          , onClick (SaveStory story.id) 
-          ] []
-
+      then itemView story
+      else itemView story
   in 
     div [ class "story-item" ] 
       [ a [ target "_blank", Attr.href story.url ] [ text story.title ] 
       , action
       ]
+
+itemView : Story -> Html Msg 
+itemView story = 
+  span 
+    [ class "glyphicon glyphicon-bookmark pull-right"
+    , onClick <| SaveStory story.id
+    ] []
+
+itemSavedView : Story -> Html Msg 
+itemSavedView story = 
+  span 
+    [ class "glyphicon glyphicon-trash pull-right"
+    , onClick <| RemoveStory story.id
+    ] []
+
 
 
 
