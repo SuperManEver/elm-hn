@@ -114,7 +114,8 @@ type Msg
   | StoryLoaded Int Story
   | LatestFailed Http.Error
   | LatestLoaded (List Int)
-  | LoadMoreStories Bool
+  | LoadMoreStories 
+  | Scroll Bool
   | SaveStory Int 
   | RemoveStory Int
 
@@ -155,19 +156,19 @@ update msg model =
           [ loadStories top_stories' ]
 
 
-      LoadMoreStories val -> 
-        if val 
-        then 
-          let 
-            top_ids'      = List.drop shift model.top_ids
-            top_stories'  = List.take shift model.top_ids
-          in
-            { model | top_ids = top_ids', top_stories = model.top_stories ++ top_stories' } 
-            ! 
-            [ loadStories top_stories' ]
-        else 
-          model ! []
+      LoadMoreStories -> 
+        let 
+          top_ids'      = List.drop shift model.top_ids
+          top_stories'  = List.take shift model.top_ids
+        in
+          { model | top_ids = top_ids', top_stories = model.top_stories ++ top_stories' } 
+          ! 
+          [ loadStories top_stories' ]
 
+      Scroll val -> 
+        if val 
+        then update LoadMoreStories model 
+        else update NoOp model
 
       SaveStory id -> 
         model ! []

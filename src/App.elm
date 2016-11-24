@@ -51,6 +51,13 @@ type Msg
   | Scroll Bool
   | SideBarMsg SideBar.Msg 
 
+{--
+> doMsg = Task.succeed >> flip Task.perform
+<function> : a -> (a -> msg) -> Platform.Cmd.Cmd msg
+
+> doMsg = Task.succeed >> Task.perform identity
+<function> : a -> Platform.Cmd.Cmd a
+--}
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model = 
@@ -67,7 +74,7 @@ update msg model =
 
     Scroll pos -> 
       let
-        (stories', cmd) = StoryItem.update (StoryItem.LoadMoreStories pos) model.stories
+        (stories', cmd) = StoryItem.update (StoryItem.Scroll pos) model.stories
       in 
         {model | stories = stories'} ! [ Cmd.map StoryMsg cmd ]
 

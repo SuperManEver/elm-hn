@@ -24,7 +24,7 @@
 
     <script src="build/App.js"></script>
     <script>
-      (function() {
+      (function($) {
         
         var loadMore = function () {
           return $(window).scrollTop() === $(document).height() - $(window).height() 
@@ -38,7 +38,7 @@
           myApp.ports.scroll.send(isBottom);
         });
 
-      })();
+      })(jQuery);
     </script>
   </body>
 </html>

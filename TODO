@@ -7,3 +7,4 @@
 - refactor current implementation of Infinite Scroll, in particular
   how 'Scroll' event is handled in App's update 
 - Add view for story that display loading state as before
+- refactor StoryItem views
