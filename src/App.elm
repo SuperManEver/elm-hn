@@ -76,7 +76,7 @@ update msg model =
       let
         (stories', cmd) = StoryItem.update (StoryItem.Scroll pos) model.stories
       in 
-        {model | stories = stories'} ! [ Cmd.map StoryMsg cmd ]
+        { model | stories = stories' } ! [ Cmd.map StoryMsg cmd ]
 
 
     SideBarMsg subMsg -> 
