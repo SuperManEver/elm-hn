@@ -3,12 +3,14 @@ module StoryManager exposing (..)
 import Html exposing (Html, div, a, text, button, span)
 import Html.Attributes as Attr exposing (class, target)
 import Html.Events exposing (onClick)
+import Html.App as App
 import Task exposing (Task, perform)
 import Json.Decode as Json exposing ((:=))
 import Http exposing (Error)
 import String exposing (concat)
 import Dict exposing (Dict)
-import Task exposing (perform)
+
+import Story
 
 itemUrl : String 
 itemUrl = "https://hacker-news.firebaseio.com/v0/item/"
@@ -22,19 +24,11 @@ shift = 40
 
 
 -- MODEL 
-type alias Story = 
-  { id : Int 
-  , title : String 
-  , url : String
-  , saved : Bool
-  }
-
-
 type alias Model = 
   { top_ids : List Int
   , top_stories : List Int
   , saved_stories : List Int
-  , cached_stories : Dict Int Story
+  , cached_stories : Dict Int Story.Model
   }  
 
 
@@ -47,37 +41,20 @@ initModel =
   }  
 
 
-createStory : Int -> Story
-createStory id = 
-  { id = id
-  , title = "Loading"
-  , url = ""
-  , saved = False
-  }
-
-
-defaultModel : Story 
-defaultModel = 
-  { id = 1 
-  , title = ""
-  , url = ""
-  , saved = False
-  }
-
 
 -- COMMANDS
 
 -- load individual stories
-storyDecoder : Json.Decoder Story
+storyDecoder : Json.Decoder Story.Model
 storyDecoder = 
-  Json.object4 Story
+  Json.object4 Story.Model
     ("id" := Json.int)
     ("title" := Json.string)
     ("url" := Json.string)
     (Json.succeed False)
 
 
-itemLoadTask : Int -> Task Error Story
+itemLoadTask : Int -> Task Error Story.Model
 itemLoadTask id = 
   Http.get storyDecoder <| concat [ itemUrl, toString id, ".json" ]
  
@@ -111,13 +88,23 @@ loadLatests =
 type Msg 
   = NoOp 
   | StoryFailed Int Http.Error 
-  | StoryLoaded Int Story
+  | StoryLoaded Int Story.Model
   | LatestFailed Http.Error
   | LatestLoaded (List Int)
   | LoadMoreStories 
   | Scroll Bool
   | SaveStory Int 
   | RemoveStory Int
+  | StoryMsg Int Story.InternalMsg
+
+
+childTranslator : Story.Tranlator Msg
+childTranslator = 
+  Story.translator 
+    { onInternalMessage = StoryMsg
+    , onSaveStory = SaveStory
+    , onRemoveStory = RemoveStory
+    }
 
 
 update : Msg -> Model -> (Model, Cmd Msg)
@@ -171,11 +158,26 @@ update msg model =
         else update NoOp model
 
       SaveStory id -> 
-        model ! []
-
+        let 
+          saved' = model.saved_stories ++ [id]
+          top_stories' = List.filter (\ i -> i /= id) model.top_stories
+        in 
+          {model | saved_stories = saved', top_stories = top_stories' } ! []
 
       RemoveStory id -> 
         model ! []
+
+      StoryMsg id subMsg -> 
+        case (Dict.get id model.cached_stories) of 
+          Just story -> 
+            let 
+              (story', cmd)   = Story.update subMsg story
+              cached_stories' = Dict.insert id story' model.cached_stories
+            in 
+              { model | cached_stories = cached_stories' } ! [ Cmd.map childTranslator cmd ]
+
+          Nothing -> 
+            model ! []
 
 
 -- VIEW 
@@ -190,38 +192,11 @@ view model =
     model.top_stories
       |> List.map (\ id -> Dict.get id model.cached_stories) 
       |> List.foldr f []
-      |> List.map viewItem 
+      |> List.map Story.view 
       |> div [ class "main-container" ] 
+      |> App.map childTranslator
 
 
-viewItem : Story -> Html Msg
-viewItem story = 
-  let 
-    action = 
-      if story.saved 
-      then itemView story
-      else itemView story
-  in 
-    div [ class "story-item" ] 
-      [ a [ target "_blank", Attr.href story.url ] [ text story.title ] 
-      , action
-      ]
-
-
-itemView : Story -> Html Msg 
-itemView story = 
-  span 
-    [ class "glyphicon glyphicon-bookmark pull-right"
-    , onClick <| SaveStory story.id
-    ] []
-
-
-itemSavedView : Story -> Html Msg 
-itemSavedView story = 
-  span 
-    [ class "glyphicon glyphicon-trash pull-right"
-    , onClick <| RemoveStory story.id
-    ] []
 
 
 
