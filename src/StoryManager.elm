@@ -12,9 +12,6 @@ import Dict exposing (Dict)
 
 import Story
 
-itemUrl : String 
-itemUrl = "https://hacker-news.firebaseio.com/v0/item/"
-
 latestURL : String 
 latestURL = "https://hacker-news.firebaseio.com/v0/topstories.json"
 
@@ -40,37 +37,14 @@ initModel =
   , cached_stories = Dict.empty
   }  
 
-
-
 -- COMMANDS
-
--- load individual stories
-storyDecoder : Json.Decoder Story.Model
-storyDecoder = 
-  Json.object4 Story.Model
-    ("id" := Json.int)
-    ("title" := Json.string)
-    ("url" := Json.string)
-    (Json.succeed False)
-
-
-itemLoadTask : Int -> Task Error Story.Model
-itemLoadTask id = 
-  Http.get storyDecoder <| concat [ itemUrl, toString id, ".json" ]
- 
-
-loadStory : Int -> Cmd Msg
-loadStory id = 
-  id 
-    |> itemLoadTask
-    |> perform (StoryFailed id) (StoryLoaded id) 
-
 
 loadStories : List Int -> Cmd Msg
 loadStories ids = 
   ids
-    |> List.map loadStory
+    |> List.map Story.loadStory
     |> Cmd.batch 
+    |> Cmd.map childTranslator
 
 
 -- load ids 
@@ -104,80 +78,78 @@ childTranslator =
     { onInternalMessage = StoryMsg
     , onSaveStory = SaveStory
     , onRemoveStory = RemoveStory
+    , onLoad = StoryLoaded
+    , onFail = StoryFailed
     }
 
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model = 
-  let 
-    updateModel diff id model = 
-      List.map (\ val -> if val.id == id then diff val else val) model
-  in
-    case msg of 
-      NoOp -> 
+  case msg of 
+    NoOp -> 
+      model ! []
+
+
+    StoryFailed id _ -> 
         model ! []
 
 
-      StoryFailed id _ -> 
+    StoryLoaded id item -> 
+      let  
+        cached' = Dict.insert id item model.cached_stories
+      in
+        { model | cached_stories = cached' } ! []
+
+
+    LatestFailed error -> 
+      model ! []
+
+
+    LatestLoaded ids ->
+      let 
+        top_stories'  = List.take shift ids
+        top_ids'      = List.drop shift ids
+      in
+        { model | top_ids = top_ids' , top_stories = top_stories' } 
+        ! 
+        [ loadStories top_stories' ]
+
+
+    LoadMoreStories -> 
+      let 
+        top_ids'      = List.drop shift model.top_ids
+        top_stories'  = List.take shift model.top_ids
+      in
+        { model | top_ids = top_ids', top_stories = model.top_stories ++ top_stories' } 
+        ! 
+        [ loadStories top_stories' ]
+
+    Scroll val -> 
+      if val 
+      then update LoadMoreStories model 
+      else update NoOp model
+
+    SaveStory id -> 
+      let 
+        saved' = model.saved_stories ++ [id]
+        top_stories' = List.filter (\ i -> i /= id) model.top_stories
+      in 
+        {model | saved_stories = saved', top_stories = top_stories' } ! []
+
+    RemoveStory id -> 
+      model ! []
+
+    StoryMsg id subMsg -> 
+      case (Dict.get id model.cached_stories) of 
+        Just story -> 
+          let 
+            (story', cmd)   = Story.update subMsg story
+            cached_stories' = Dict.insert id story' model.cached_stories
+          in 
+            { model | cached_stories = cached_stories' } ! [ Cmd.map childTranslator cmd ]
+
+        Nothing -> 
           model ! []
-
-
-      StoryLoaded id item -> 
-        let  
-          cached' = Dict.insert id item model.cached_stories
-        in
-          { model | cached_stories = cached' } ! []
-
-
-      LatestFailed error -> 
-        model ! []
-
-
-      LatestLoaded ids ->
-        let 
-          top_stories'  = List.take shift ids
-          top_ids'      = List.drop shift ids
-        in
-          { model | top_ids = top_ids' , top_stories = top_stories' } 
-          ! 
-          [ loadStories top_stories' ]
-
-
-      LoadMoreStories -> 
-        let 
-          top_ids'      = List.drop shift model.top_ids
-          top_stories'  = List.take shift model.top_ids
-        in
-          { model | top_ids = top_ids', top_stories = model.top_stories ++ top_stories' } 
-          ! 
-          [ loadStories top_stories' ]
-
-      Scroll val -> 
-        if val 
-        then update LoadMoreStories model 
-        else update NoOp model
-
-      SaveStory id -> 
-        let 
-          saved' = model.saved_stories ++ [id]
-          top_stories' = List.filter (\ i -> i /= id) model.top_stories
-        in 
-          {model | saved_stories = saved', top_stories = top_stories' } ! []
-
-      RemoveStory id -> 
-        model ! []
-
-      StoryMsg id subMsg -> 
-        case (Dict.get id model.cached_stories) of 
-          Just story -> 
-            let 
-              (story', cmd)   = Story.update subMsg story
-              cached_stories' = Dict.insert id story' model.cached_stories
-            in 
-              { model | cached_stories = cached_stories' } ! [ Cmd.map childTranslator cmd ]
-
-          Nothing -> 
-            model ! []
 
 
 -- VIEW 
