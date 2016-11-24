@@ -100,3 +100,6 @@ itemSavedView {id} =
     [ class "glyphicon glyphicon-trash pull-right"
     , onClick (ForParent <| RemoveStory id)
     ] []
+
+
+-- COMMANDS 

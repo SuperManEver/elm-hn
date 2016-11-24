@@ -41,13 +41,13 @@ defaultModel =
 -- INIT  
 init : (Model, Cmd Msg)
 init = 
-  defaultModel ! [ Cmd.map StoryMsg StoryManager.loadLatests ]
+  defaultModel ! [ Cmd.map StoriesMsg StoryManager.loadLatests ]
 
 
 -- UPDATE 
 type Msg 
   = NoOp
-  | StoryMsg StoryManager.Msg 
+  | StoriesMsg StoryManager.Msg 
   | Scroll Bool
   | SideBarMsg SideBar.Msg 
 
@@ -65,18 +65,18 @@ update msg model =
     NoOp -> 
       model ! []
 
-    StoryMsg subMsg -> 
+    StoriesMsg subMsg -> 
       let 
         (stories', cmd ) = StoryManager.update subMsg model.stories
       in
-        { model | stories = stories' } ! [ Cmd.map StoryMsg cmd ]
+        { model | stories = stories' } ! [ Cmd.map StoriesMsg cmd ]
 
 
     Scroll pos -> 
       let
         (stories', cmd) = StoryManager.update (StoryManager.Scroll pos) model.stories
       in 
-        { model | stories = stories' } ! [ Cmd.map StoryMsg cmd ]
+        { model | stories = stories' } ! [ Cmd.map StoriesMsg cmd ]
 
 
     SideBarMsg subMsg -> 
@@ -97,7 +97,7 @@ view : Model -> Html Msg
 view model = 
   let 
     sidebar = App.map SideBarMsg (SideBar.view model.sidebar)
-    stories = App.map StoryMsg (StoryManager.view model.stories)
+    stories = App.map StoriesMsg (StoryManager.view model.stories)
   in
     div [] 
       [ sidebar 
