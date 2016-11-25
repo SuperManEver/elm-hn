@@ -87,20 +87,30 @@ update msg model =
 
     LatestLoaded ids ->
       let 
-        top_stories'  = List.take shift ids
-        top_ids'      = List.drop shift ids
+        top_stories'    = List.take shift ids
+        top_ids'        = List.drop shift ids
+        cached_stories' = 
+          List.foldl 
+            (\ id acc -> Dict.insert id (Story.createStory id) acc)
+            model.cached_stories 
+            top_stories'
       in
-        { model | top_ids = top_ids' , top_stories = top_stories' } 
+        { model | top_ids = top_ids' , top_stories = top_stories', cached_stories = cached_stories' } 
         ! 
         [ loadStories top_stories' ]
 
 
     LoadMoreStories -> 
       let 
-        top_ids'      = List.drop shift model.top_ids
-        top_stories'  = List.take shift model.top_ids
+        top_ids'        = List.drop shift model.top_ids
+        top_stories'    = List.take shift model.top_ids
+        cached_stories' = 
+          List.foldl 
+            (\ id acc -> Dict.insert id (Story.createStory id) acc)
+            model.cached_stories 
+            top_stories'
       in
-        { model | top_ids = top_ids', top_stories = model.top_stories ++ top_stories' } 
+        { model | top_ids = top_ids', top_stories = model.top_stories ++ top_stories', cached_stories = cached_stories' } 
         ! 
         [ loadStories top_stories' ]
 
@@ -143,7 +153,7 @@ view model =
     f = (\ curr acc -> 
           case curr of 
             Just item -> item::acc 
-            Nothing -> acc)
+            Nothing -> acc)  
   in 
     model.top_stories
       |> List.map (\ id -> Dict.get id model.cached_stories) 
