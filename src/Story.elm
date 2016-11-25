@@ -37,19 +37,7 @@ defaultModel =
   }
 
 
--- UPDATE 
-type OutMsg 
-  = SaveStory Int 
-  | RemoveStory Int
-  | StoryFailed Int Error
-  | StoryLoaded Int Model
-
-type InternalMsg 
-  = NoOp
-
-type Msg 
-  = ForSelf Int InternalMsg
-  | ForParent OutMsg
+-- TRANSLATOR 
 
 type alias TranslationDictionary parentMsg = 
   { onInternalMessage : Int -> InternalMsg -> parentMsg 
@@ -59,10 +47,8 @@ type alias TranslationDictionary parentMsg =
   , onLoad : Int -> Model -> parentMsg
   }
 
-
 type alias Tranlator parentMsg = 
   Msg -> parentMsg 
-
 
 translator : TranslationDictionary parentMsg -> Tranlator parentMsg 
 translator { onInternalMessage, onSaveStory, onRemoveStory, onFail, onLoad } msg = 
@@ -82,6 +68,20 @@ translator { onInternalMessage, onSaveStory, onRemoveStory, onFail, onLoad } msg
     ForParent (StoryFailed id error) -> 
       onFail id error
 
+
+-- UPDATE 
+type OutMsg 
+  = SaveStory Int 
+  | RemoveStory Int
+  | StoryFailed Int Error
+  | StoryLoaded Int Model
+
+type InternalMsg 
+  = NoOp
+
+type Msg 
+  = ForSelf Int InternalMsg
+  | ForParent OutMsg
 
 update : InternalMsg -> Model -> (Model, Cmd Msg)
 update msg model = 
