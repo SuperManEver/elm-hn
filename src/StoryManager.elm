@@ -65,85 +65,81 @@ childTranslator =
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model = 
-  case msg of 
-    NoOp -> 
-      model ! []
+  let 
+    preloadStories ids = 
+      let 
+        top_ids'        = List.drop shift ids
+        top_stories'    = List.take shift ids
+        cached_stories' = 
+          List.foldl 
+            (\ id acc -> Dict.insert id (Story.createStory id) acc)
+            model.cached_stories 
+            top_stories'
+      in
+        { model 
+        | top_ids = top_ids'
+        , top_stories = model.top_stories ++ top_stories'
+        , cached_stories = cached_stories' } 
+        ! 
+        [ loadStories top_stories' ]
 
-
-    StoryFailed id _ -> 
+  in
+    case msg of 
+      NoOp -> 
         model ! []
 
 
-    StoryLoaded id item -> 
-      let  
-        cached' = Dict.insert id item model.cached_stories
-      in
-        { model | cached_stories = cached' } ! []
-
-
-    LatestFailed error -> 
-      model ! []
-
-
-    LatestLoaded ids ->
-      let 
-        top_stories'    = List.take shift ids
-        top_ids'        = List.drop shift ids
-        cached_stories' = 
-          List.foldl 
-            (\ id acc -> Dict.insert id (Story.createStory id) acc)
-            model.cached_stories 
-            top_stories'
-      in
-        { model | top_ids = top_ids' , top_stories = top_stories', cached_stories = cached_stories' } 
-        ! 
-        [ loadStories top_stories' ]
-
-
-    LoadMoreStories -> 
-      let 
-        top_ids'        = List.drop shift model.top_ids
-        top_stories'    = List.take shift model.top_ids
-        cached_stories' = 
-          List.foldl 
-            (\ id acc -> Dict.insert id (Story.createStory id) acc)
-            model.cached_stories 
-            top_stories'
-      in
-        { model | top_ids = top_ids', top_stories = model.top_stories ++ top_stories', cached_stories = cached_stories' } 
-        ! 
-        [ loadStories top_stories' ]
-
-
-    Scroll val -> 
-      if val 
-      then update LoadMoreStories model 
-      else update NoOp model
-
-
-    SaveStory id -> 
-      let 
-        saved' = model.saved_stories ++ [id]
-        top_stories' = List.filter (\ i -> i /= id) model.top_stories
-      in 
-        {model | saved_stories = saved', top_stories = top_stories' } ! []
-
-
-    RemoveStory id -> 
-      model ! []
-
-
-    StoryMsg id subMsg -> 
-      case (Dict.get id model.cached_stories) of 
-        Just story -> 
-          let 
-            (story', cmd)   = Story.update subMsg story
-            cached_stories' = Dict.insert id story' model.cached_stories
-          in 
-            { model | cached_stories = cached_stories' } ! [ Cmd.map childTranslator cmd ]
-
-        Nothing -> 
+      StoryFailed id _ -> 
           model ! []
+
+
+      StoryLoaded id item -> 
+        let  
+          cached' = Dict.insert id item model.cached_stories
+        in
+          { model | cached_stories = cached' } ! []
+
+
+      LatestFailed error -> 
+        model ! []
+
+
+      LatestLoaded ids ->
+        preloadStories ids 
+
+
+      LoadMoreStories -> 
+        preloadStories model.top_ids
+
+      Scroll val -> 
+        if val 
+        then update LoadMoreStories model 
+        else update NoOp model
+
+
+      SaveStory id -> 
+        let 
+          saved' = model.saved_stories ++ [id]
+          top_stories' = List.filter (\ i -> i /= id) model.top_stories
+        in 
+          {model | saved_stories = saved', top_stories = top_stories' } ! []
+
+
+      RemoveStory id -> 
+        model ! []
+
+
+      StoryMsg id subMsg -> 
+        case (Dict.get id model.cached_stories) of 
+          Just story -> 
+            let 
+              (story', cmd)   = Story.update subMsg story
+              cached_stories' = Dict.insert id story' model.cached_stories
+            in 
+              { model | cached_stories = cached_stories' } ! [ Cmd.map childTranslator cmd ]
+
+          Nothing -> 
+            model ! []
 
 
 -- VIEW 
