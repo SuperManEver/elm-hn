@@ -104,10 +104,12 @@ update msg model =
         ! 
         [ loadStories top_stories' ]
 
+
     Scroll val -> 
       if val 
       then update LoadMoreStories model 
       else update NoOp model
+
 
     SaveStory id -> 
       let 
@@ -116,8 +118,10 @@ update msg model =
       in 
         {model | saved_stories = saved', top_stories = top_stories' } ! []
 
+
     RemoveStory id -> 
       model ! []
+
 
     StoryMsg id subMsg -> 
       case (Dict.get id model.cached_stories) of 
