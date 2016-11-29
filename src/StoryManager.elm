@@ -134,7 +134,7 @@ update msg model =
           Just story -> 
             let 
               (story', cmd)   = Story.update subMsg story
-              cached_stories' = Dict.insert id story' model.cached_stories
+              cached_stories' = Dict.update id (Maybe.map (\ s -> story')) model.cached_stories
             in 
               { model | cached_stories = cached_stories' } ! [ Cmd.map childTranslator cmd ]
 
