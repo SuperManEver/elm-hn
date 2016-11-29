@@ -4,6 +4,7 @@ import Html exposing (Html, div, a, text, button, span)
 import Html.Attributes as Attr exposing (class, target)
 import Html.Events exposing (onClick)
 import Html.App as App
+import Html.Lazy exposing (lazy2)
 import Task exposing (Task, perform)
 import Json.Decode as Json exposing ((:=))
 import Http exposing (Error)
@@ -146,17 +147,19 @@ update msg model =
 view : Model -> Html Msg
 view model = 
   let 
-    f = (\ curr acc -> 
+    collect = (\ curr acc -> 
           case curr of 
             Just item -> item::acc 
             Nothing -> acc)  
+
+    stories = 
+      model.top_stories
+        |> List.map (\ id -> Dict.get id model.cached_stories) 
+        |> List.foldr collect []
+        |> List.map Story.view 
   in 
-    model.top_stories
-      |> List.map (\ id -> Dict.get id model.cached_stories) 
-      |> List.foldr f []
-      |> List.map Story.view 
-      |> div [ class "main-container" ] 
-      |> App.map childTranslator
+    lazy2 div [ class "main-container" ] stories |> App.map childTranslator
+    
 
 
 -- COMMANDS
