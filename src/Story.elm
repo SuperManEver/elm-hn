@@ -43,15 +43,13 @@ type alias TranslationDictionary parentMsg =
   { onInternalMessage : Int -> InternalMsg -> parentMsg 
   , onSaveStory : Int -> parentMsg
   , onRemoveStory : Int -> parentMsg
-  , onFail : Int -> Error -> parentMsg
-  , onLoad : Int -> Model -> parentMsg
   }
 
 type alias Tranlator parentMsg = 
   Msg -> parentMsg 
 
 translator : TranslationDictionary parentMsg -> Tranlator parentMsg 
-translator { onInternalMessage, onSaveStory, onRemoveStory, onFail, onLoad } msg = 
+translator { onInternalMessage, onSaveStory, onRemoveStory } msg = 
   case msg of 
     ForSelf id internal -> 
       onInternalMessage id internal
@@ -62,32 +60,33 @@ translator { onInternalMessage, onSaveStory, onRemoveStory, onFail, onLoad } msg
     ForParent (RemoveStory id) -> 
       onRemoveStory id
 
-    ForParent (StoryLoaded id model) -> 
-      onLoad id model 
-
-    ForParent (StoryFailed id error) -> 
-      onFail id error
-
 
 -- UPDATE 
 type OutMsg 
   = SaveStory Int 
   | RemoveStory Int
-  | StoryFailed Int Error
-  | StoryLoaded Int Model
 
 type InternalMsg 
   = NoOp
+  | StoryLoaded Model 
+  | StoryFailed Error
 
 type Msg 
   = ForSelf Int InternalMsg
   | ForParent OutMsg
+
 
 update : InternalMsg -> Model -> (Model, Cmd Msg)
 update msg model = 
   case msg of 
     NoOp -> 
       model ! []
+
+    StoryLoaded model -> 
+      model ! []
+
+    StoryFailed err -> 
+      { model | title = "Not Loading" } ! []
 
 
 -- VIEW 
@@ -141,13 +140,13 @@ loadStory id =
   let 
     onFail err =
       err
-        |> (StoryFailed id)
-        |> ForParent 
+        |> StoryFailed 
+        |> ForSelf id 
 
     onLoad story = 
       story 
-        |> (StoryLoaded id) 
-        |> ForParent
+        |> StoryLoaded 
+        |> ForSelf id
   in
     id 
       |> itemLoadTask

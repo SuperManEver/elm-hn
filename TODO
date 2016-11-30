@@ -1,3 +1,8 @@
 I possibly can handle message load/failed of story loading 
 in story module itself ...
 
+Implement navigation
+ - introduce Parent/Child message in Sidebar
+ - when click happens of link route message to parent that will change part of state responsible 
+   for navigation
+ - based on this change list of stories

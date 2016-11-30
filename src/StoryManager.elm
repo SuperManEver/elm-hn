@@ -42,8 +42,6 @@ initModel =
 -- UPDATE 
 type Msg 
   = NoOp 
-  | StoryFailed Int Http.Error 
-  | StoryLoaded Int Story.Model
   | LatestFailed Http.Error
   | LatestLoaded (List Int)
   | LoadMoreStories 
@@ -59,8 +57,6 @@ storyTranslator =
     { onInternalMessage = StoryMsg
     , onSaveStory = SaveStory
     , onRemoveStory = RemoveStory
-    , onLoad = StoryLoaded
-    , onFail = StoryFailed
     }
 
 
@@ -88,17 +84,6 @@ update msg model =
     case msg of 
       NoOp -> 
         model ! []
-
-
-      StoryFailed id _ -> 
-          model ! []
-
-
-      StoryLoaded id item -> 
-        let  
-          cached' = Dict.insert id item model.cached_stories
-        in
-          { model | cached_stories = cached' } ! []
 
 
       LatestFailed error -> 
