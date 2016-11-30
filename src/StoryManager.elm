@@ -115,7 +115,10 @@ update msg model =
 
 
       RemoveStory id -> 
-        model ! []
+        let 
+          top_stories' = List.filter (\ d -> not (d == id)) model.top_stories
+        in
+          {model | top_stories = top_stories'} ! []
 
 
       StoryMsg id subMsg -> 

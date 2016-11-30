@@ -1,7 +1,7 @@
 module Story exposing (..)
 
 import Html exposing (Html, div, a, text, button, span)
-import Html.Attributes  exposing (class, target, href)
+import Html.Attributes  exposing (class, target, href, title)
 import Html.Events exposing (onClick)
 import Http exposing (Error)
 import Json.Decode as Json exposing ((:=))
@@ -70,6 +70,7 @@ type InternalMsg
   = NoOp
   | StoryLoaded Model 
   | StoryFailed Error
+  | MarkAsUnread
 
 type Msg 
   = ForSelf Int InternalMsg
@@ -87,6 +88,9 @@ update msg model =
 
     StoryFailed err -> 
       { model | title = "Not Loading" } ! []
+
+    MarkAsUnread -> 
+      model ! []
 
 
 -- VIEW 
@@ -106,19 +110,18 @@ view story =
 
 itemView : Model -> Html Msg 
 itemView {id} = 
-  span 
-    [ class "glyphicon glyphicon-bookmark pull-right"
-    , onClick (ForParent <| SaveStory id)
-    ] []
-
+  div [ class "story-controls pull-right" ]
+    [ span [ class "glyphicon glyphicon-bookmark", title "Save for later", onClick (ForParent <| SaveStory id) ] []
+    , span [ class "glyphicon glyphicon-ok", title "Mark as unread", onClick (MarkAsUnread |> ForSelf id) ] []
+    , span [ class "glyphicon glyphicon-remove", title "Mark as read and hide", onClick (ForParent <| RemoveStory id) ] []
+    ]
 
 itemSavedView : Model -> Html Msg 
 itemSavedView {id} = 
-  span 
-    [ class "glyphicon glyphicon-trash pull-right"
-    , onClick (ForParent <| RemoveStory id)
-    ] []
-
+  div [ class "story-controls pull-right" ] 
+    [ span [ class "glyphicon glyphicon-trash ", onClick (ForParent <| RemoveStory id) ] []
+    ]
+  
 
 -- COMMANDS 
 storyDecoder : Json.Decoder Model

@@ -9,10 +9,15 @@
     font-size : 0.86em;
     text-decoration: none;
   }
+  
+  .story-controls {
+    display: inline-block;
+  }
 
   .glyphicon {
     font-size : 0.76em;
-    color : darkGray;
+    color : gainsBoro;
+    margin-right: 8px;
     &:hover {
       cursor : pointer;
       color : Gray;
