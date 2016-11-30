@@ -4,7 +4,7 @@ import Html exposing (Html, div, a, text, button, span)
 import Html.Attributes as Attr exposing (class, target)
 import Html.Events exposing (onClick)
 import Html.App as App
-import Html.Lazy exposing (lazy2)
+import Html.Lazy exposing (lazy, lazy2)
 import Task exposing (Task, perform)
 import Json.Decode as Json exposing ((:=))
 import Http exposing (Error)
@@ -141,10 +141,9 @@ view model =
       model.top_stories
         |> List.map (\ id -> Dict.get id model.cached_stories) 
         |> List.foldr collect []
-        |> List.map Story.view 
+        |> List.map (lazy <| Story.view)
   in 
     lazy2 div [ class "main-container" ] stories |> App.map storyTranslator
-    
 
 
 -- COMMANDS

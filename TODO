@@ -1,8 +1,15 @@
-I possibly can handle message load/failed of story loading 
-in story module itself ...
-
 Implement navigation
  - introduce Parent/Child message in Sidebar
  - when click happens of link route message to parent that will change part of state responsible 
    for navigation
  - based on this change list of stories
+
+HN Reader:
+  + implement preloading for Stories
+  - Add constant update functionality to HN Reader
+  - add LocalStorage support for HN-Reader
+  + Add Html.lazy to HN-Reader
+  - reimplement my Routing strategy
+  - refactor 'LoadMoreStories' into a command
+  - Learn about other approaches to Routing 
+  - add same functionality as a feedly does for its items
