@@ -17,7 +17,7 @@ type alias Model =
   , title : String 
   , url : String
   , saved : Bool
-  , unread : Bool
+  , read : Bool
   }
 
 type alias StoryForLoad = 
@@ -32,16 +32,7 @@ createStory id =
   , title = "Loading"
   , url = ""
   , saved = False
-  , unread = False
-  }
-
-storyStub : Int -> String -> String -> Model 
-storyStub id title url = 
-  { id = id
-  , title = title
-  , url = url
-  , saved = False
-  , unread = False
+  , read = False
   }
 
 defaultModel : Model 
@@ -50,7 +41,7 @@ defaultModel =
   , title = ""
   , url = ""
   , saved = False
-  , unread = False
+  , read = False
   }
 
 
@@ -107,7 +98,7 @@ update msg model =
       { model | title = "Not Loading" } ! []
 
     MarkAsUnread -> 
-      { model | unread = not model.unread } ! []
+      { model | read = not model.read } ! []
 
 
 -- VIEW 
@@ -122,7 +113,7 @@ view story =
     div [ class "story-item" ] 
       [ a [ target "_blank"
           , href story.url
-          , classList [ ("readed", story.unread) ] 
+          , classList [ ("readed", story.read) ] 
           ] 
           [ text story.title ] 
       , action
@@ -133,7 +124,7 @@ itemView : Model -> Html Msg
 itemView {id} = 
   div [ class "story-controls pull-right" ]
     [ span [ class "glyphicon glyphicon-bookmark", title "Save for later", onClick (ForParent <| SaveStory id) ] []
-    , span [ class "glyphicon glyphicon-ok", title "Mark as unread", onClick (MarkAsUnread |> ForSelf id) ] []
+    , span [ class "glyphicon glyphicon-ok", title "Mark as read", onClick (MarkAsUnread |> ForSelf id) ] []
     , span [ class "glyphicon glyphicon-remove", title "Mark as read and hide", onClick (ForParent <| RemoveStory id) ] []
     ]
 
