@@ -22,12 +22,38 @@ type alias Link =
 links : List Link
 links = [ ("Top stories", "#/home"), ("Bookmarks", "#/saved") ]
 
+-- TRANSLATOR 
+type alias Translator parentMsg = 
+  Msg -> parentMsg
+
+type alias TranslationDictionary parentMsg = 
+  { onInternalMsg : InternalMsg -> parentMsg 
+  , onPageChange : String -> parentMsg 
+  }
+
 -- UPDATE 
-type Msg 
-  = NoOp
+type InternalMsg 
+  = NoOp 
   | Toggle
 
-update : Msg -> Model -> (Model, Cmd Msg)
+type OutMsg 
+  = ChangePage String
+
+type Msg 
+  = ForSelf InternalMsg
+  | ForParent OutMsg
+
+translator : TranslationDictionary parentMsg -> Translator parentMsg
+translator { onInternalMsg, onPageChange } msg = 
+  case msg of 
+    ForSelf internal -> 
+      onInternalMsg internal
+
+    ForParent (ChangePage page) -> 
+      onPageChange page
+
+
+update : InternalMsg -> Model -> (Model, Cmd Msg)
 update msg model = 
   case msg of 
     NoOp -> 
@@ -67,7 +93,7 @@ sidebarToggle open =
         classList [
           ("toggle-sidebar", True), 
           ("open", open)
-        ], onClick Toggle 
+        ], onClick (Toggle |> ForSelf)
       ] 
       [ span [ class "glyphicon glyphicon-align-justify" ] [] ]
 

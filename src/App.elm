@@ -51,7 +51,8 @@ type Msg
   = NoOp
   | StoriesMsg StoryManager.Msg 
   | Scroll Bool
-  | SideBarMsg SideBar.Msg 
+  | SideBarMsg SideBar.InternalMsg  
+  | ChangePage String
 
 {--
 > doMsg = Task.succeed >> flip Task.perform
@@ -60,6 +61,13 @@ type Msg
 > doMsg = Task.succeed >> Task.perform identity
 <function> : a -> Platform.Cmd.Cmd a
 --}
+
+sidebarTranslator : SideBar.Translator Msg 
+sidebarTranslator = 
+  SideBar.translator 
+    { onInternalMsg = SideBarMsg
+    , onPageChange = ChangePage 
+    }
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model = 
@@ -85,7 +93,10 @@ update msg model =
       let
         (updatedSidebar, sidebarCmd) = SideBar.update subMsg model.sidebar
       in 
-        {model | sidebar = updatedSidebar} ! [ Cmd.map SideBarMsg sidebarCmd ]
+        {model | sidebar = updatedSidebar} ! [ Cmd.map sidebarTranslator sidebarCmd ]
+
+    ChangePage page -> 
+      model ! []
 
 
 -- SUBSCRIPTIONS
@@ -98,7 +109,7 @@ subscriptions model =
 view : Model -> Html Msg
 view model = 
   let 
-    sidebar = App.map SideBarMsg (SideBar.view model.sidebar)
+    sidebar = App.map sidebarTranslator (SideBar.view model.sidebar)
     stories = App.map StoriesMsg (StoryManager.view model.stories)
   in
     div [] 
