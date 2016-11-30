@@ -133,12 +133,16 @@ itemView {id, saved} =
           , title "Save for later"
           , onClick (ForParent <| SaveStory id (not saved)) 
           ] []
-      , span [ class "glyphicon glyphicon-ok", title "Mark as read", onClick (MarkAsUnread |> ForSelf id) ] []
       , span 
-        [ class "glyphicon glyphicon-remove"
-        , title "Mark as read and hide"
-        , onClick clickMsg
-        ] []
+          [ class "glyphicon glyphicon-ok"
+          , title "Mark as read"
+          , onClick (MarkAsUnread |> ForSelf id) 
+          ] []
+      , span 
+          [ class "glyphicon glyphicon-remove"
+          , title "Mark as read and hide"
+          , onClick clickMsg
+          ] []
       ]
   
 
