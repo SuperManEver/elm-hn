@@ -25,5 +25,9 @@
       cursor : pointer;
       color : Gray;
     }
-  }
-}
+
+    &.saved-story {
+      color : #F4594B;
+    } // .saved-story
+  } // .glyphicon
+} // story-item

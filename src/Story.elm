@@ -49,7 +49,7 @@ defaultModel =
 
 type alias TranslationDictionary parentMsg = 
   { onInternalMessage : Int -> InternalMsg -> parentMsg 
-  , onSaveStory : Int -> parentMsg
+  , onSaveStory : Int -> Bool -> parentMsg
   , onRemoveStory : Int -> parentMsg
   , onRemoveSaved : Int -> parentMsg
   }
@@ -63,8 +63,8 @@ translator { onInternalMessage, onSaveStory, onRemoveStory, onRemoveSaved } msg 
     ForSelf id internal -> 
       onInternalMessage id internal
 
-    ForParent (SaveStory id) -> 
-      onSaveStory id 
+    ForParent (SaveStory id bool) -> 
+      onSaveStory id bool
 
     ForParent (RemoveStory id) -> 
       onRemoveStory id
@@ -75,7 +75,7 @@ translator { onInternalMessage, onSaveStory, onRemoveStory, onRemoveSaved } msg 
 
 -- UPDATE 
 type OutMsg 
-  = SaveStory Int 
+  = SaveStory Int Bool
   | RemoveStory Int
   | RemoveSavedStory Int
 
@@ -109,26 +109,22 @@ update msg model =
 -- VIEW 
 view : Model -> Html Msg
 view story = 
-  let 
-    action = 
-      if story.saved 
-      then itemSavedView story
-      else itemView story
-  in 
-    div [ class "story-item" ] 
-      [ a [ target "_blank"
-          , href story.url
-          , classList [ ("readed", story.read) ] 
-          ] 
-          [ text story.title ] 
-      , action
-      ]
+  div [ class "story-item" ] 
+    [ a [ target "_blank"
+        , href story.url
+        , classList [ ("readed", story.read) ] 
+        ] 
+        [ text story.title ] 
+    , itemView story
+    ]
 
 
 itemView : Model -> Html Msg 
-itemView {id} = 
+itemView {id, saved} = 
   div [ class "story-controls pull-right" ]
-    [ span [ class "glyphicon glyphicon-bookmark", title "Save for later", onClick (ForParent <| SaveStory id) ] []
+    [ span [ classList [ ("glyphicon glyphicon-bookmark", True), ("saved-story", saved) ]
+            , title "Save for later", onClick (ForParent <| SaveStory id (not saved)) 
+            ] []
     , span [ class "glyphicon glyphicon-ok", title "Mark as read", onClick (MarkAsUnread |> ForSelf id) ] []
     , span [ class "glyphicon glyphicon-remove", title "Mark as read and hide", onClick (ForParent <| RemoveStory id) ] []
     ]
