@@ -1,7 +1,7 @@
 module Story exposing (..)
 
 import Html exposing (Html, div, a, text, button, span)
-import Html.Attributes  exposing (class, target, href, title)
+import Html.Attributes  exposing (class, target, href, title, classList)
 import Html.Events exposing (onClick)
 import Http exposing (Error)
 import Json.Decode as Json exposing ((:=))
@@ -17,6 +17,13 @@ type alias Model =
   , title : String 
   , url : String
   , saved : Bool
+  , unread : Bool
+  }
+
+type alias StoryForLoad = 
+  { id : Int 
+  , title : String 
+  , url : String
   }
 
 createStory : Int -> Model
@@ -25,8 +32,17 @@ createStory id =
   , title = "Loading"
   , url = ""
   , saved = False
+  , unread = False
   }
 
+storyStub : Int -> String -> String -> Model 
+storyStub id title url = 
+  { id = id
+  , title = title
+  , url = url
+  , saved = False
+  , unread = False
+  }
 
 defaultModel : Model 
 defaultModel = 
@@ -34,6 +50,7 @@ defaultModel =
   , title = ""
   , url = ""
   , saved = False
+  , unread = False
   }
 
 
@@ -68,7 +85,7 @@ type OutMsg
 
 type InternalMsg 
   = NoOp
-  | StoryLoaded Model 
+  | StoryLoaded StoryForLoad 
   | StoryFailed Error
   | MarkAsUnread
 
@@ -83,14 +100,14 @@ update msg model =
     NoOp -> 
       model ! []
 
-    StoryLoaded model -> 
-      model ! []
+    StoryLoaded st -> 
+      { model | title = st.title, url = st.url } ! []
 
     StoryFailed err -> 
       { model | title = "Not Loading" } ! []
 
     MarkAsUnread -> 
-      model ! []
+      { model | unread = not model.unread } ! []
 
 
 -- VIEW 
@@ -103,7 +120,11 @@ view story =
       else itemView story
   in 
     div [ class "story-item" ] 
-      [ a [ target "_blank", href story.url ] [ text story.title ] 
+      [ a [ target "_blank"
+          , href story.url
+          , classList [ ("readed", story.unread) ] 
+          ] 
+          [ text story.title ] 
       , action
       ]
 
@@ -124,16 +145,15 @@ itemSavedView {id} =
   
 
 -- COMMANDS 
-storyDecoder : Json.Decoder Model
+storyDecoder : Json.Decoder StoryForLoad
 storyDecoder = 
-  Json.object4 Model
+  Json.object3 StoryForLoad
     ("id" := Json.int)
     ("title" := Json.string)
     ("url" := Json.string)
-    (Json.succeed False)
 
 
-itemLoadTask : Int -> Task Error Model
+itemLoadTask : Int -> Task Error StoryForLoad
 itemLoadTask id = 
   Http.get storyDecoder <| concat [ itemUrl, toString id, ".json" ]
  
