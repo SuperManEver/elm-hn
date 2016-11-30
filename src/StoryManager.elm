@@ -137,7 +137,12 @@ update msg model =
             model ! []
 
       RemoveSavedStory id -> 
-        {model | saved_stories = List.filter (\ i -> i /= id) model.saved_stories} ! []
+        let 
+          saved_stories' = List.filter (\ i -> i /= id) model.saved_stories
+        in
+          { model | saved_stories = saved_stories' } 
+          ! 
+          []
 
 
 -- VIEW 
