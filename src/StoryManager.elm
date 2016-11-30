@@ -154,7 +154,7 @@ view model =
 loadStories : List Int -> Cmd Msg
 loadStories ids = 
   ids
-    |> List.map Story.loadStory
+    |> List.map Story.loadStoryTask
     |> Cmd.batch 
     |> Cmd.map storyTranslator
 

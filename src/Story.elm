@@ -135,8 +135,8 @@ itemLoadTask id =
   Http.get storyDecoder <| concat [ itemUrl, toString id, ".json" ]
  
 
-loadStory : Int -> Cmd Msg
-loadStory id = 
+loadStoryTask : Int -> Cmd Msg
+loadStoryTask id = 
   let 
     onFail err =
       err
