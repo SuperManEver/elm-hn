@@ -20,7 +20,7 @@ type alias Link =
 
 
 links : List Link
-links = [ ("Top stories", "#home"), ("Bookmarks", "#saved") ]
+links = [ ("Top stories", "#/home"), ("Bookmarks", "#/saved") ]
 
 -- UPDATE 
 type Msg 

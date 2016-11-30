@@ -53,8 +53,8 @@ type Msg
   | StoryMsg Int Story.InternalMsg
 
 
-childTranslator : Story.Tranlator Msg
-childTranslator = 
+storyTranslator : Story.Tranlator Msg
+storyTranslator = 
   Story.translator 
     { onInternalMessage = StoryMsg
     , onSaveStory = SaveStory
@@ -137,7 +137,7 @@ update msg model =
               (story', cmd)   = Story.update subMsg story
               cached_stories' = Dict.update id (Maybe.map (\ s -> story')) model.cached_stories
             in 
-              { model | cached_stories = cached_stories' } ! [ Cmd.map childTranslator cmd ]
+              { model | cached_stories = cached_stories' } ! [ Cmd.map storyTranslator cmd ]
 
           Nothing -> 
             model ! []
@@ -158,7 +158,7 @@ view model =
         |> List.foldr collect []
         |> List.map Story.view 
   in 
-    lazy2 div [ class "main-container" ] stories |> App.map childTranslator
+    lazy2 div [ class "main-container" ] stories |> App.map storyTranslator
     
 
 
@@ -169,7 +169,7 @@ loadStories ids =
   ids
     |> List.map Story.loadStory
     |> Cmd.batch 
-    |> Cmd.map childTranslator
+    |> Cmd.map storyTranslator
 
 
 -- load ids 
