@@ -63,13 +63,16 @@ storyTranslator =
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model = 
   let 
+    createStoryStub =
+      Story.createStory 
+
     preloadStories ids = 
       let 
         top_ids'        = List.drop shift ids
         top_stories'    = List.take shift ids
         cached_stories' = 
           List.foldl 
-            (\ id acc -> Dict.insert id (Story.createStory id) acc)
+            (\ id acc -> Dict.insert id (createStoryStub id) acc)
             model.cached_stories 
             top_stories'
       in

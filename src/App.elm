@@ -41,7 +41,9 @@ defaultModel =
 -- INIT  
 init : (Model, Cmd Msg)
 init = 
-  defaultModel ! [ Cmd.map StoriesMsg StoryManager.loadLatests ]
+  defaultModel 
+  ! 
+  [ Cmd.map StoriesMsg StoryManager.loadLatests ]
 
 
 -- UPDATE 

@@ -13,3 +13,5 @@ HN Reader:
   - refactor 'LoadMoreStories' into a command
   - Learn about other approaches to Routing 
   - add same functionality as a feedly does for its items
+
+!!! I think I can to check whether story exists in cache before forcing it to load from server
