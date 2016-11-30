@@ -48,6 +48,7 @@ type Msg
   | Scroll Bool
   | SaveStory Int 
   | RemoveStory Int
+  | RemoveSavedStory Int
   | StoryMsg Int Story.InternalMsg
 
 
@@ -57,6 +58,7 @@ storyTranslator =
     { onInternalMessage = StoryMsg
     , onSaveStory = SaveStory
     , onRemoveStory = RemoveStory
+    , onRemoveSaved = RemoveSavedStory 
     }
 
 
@@ -108,10 +110,11 @@ update msg model =
 
       SaveStory id -> 
         let 
-          saved' = model.saved_stories ++ [id]
-          top_stories' = List.filter (\ i -> i /= id) model.top_stories
+          saved'          = model.saved_stories ++ [id]
+          top_stories'    = List.filter (\ i -> i /= id) model.top_stories
+          cached_stories' = Dict.update id (Maybe.map (\ story -> {story | saved = True} )) model.cached_stories
         in 
-          {model | saved_stories = saved', top_stories = top_stories' } ! []
+          {model | saved_stories = saved', top_stories = top_stories', cached_stories = cached_stories' } ! []
 
 
       RemoveStory id -> 
@@ -132,6 +135,9 @@ update msg model =
 
           Nothing -> 
             model ! []
+
+      RemoveSavedStory id -> 
+        {model | saved_stories = List.filter (\ i -> i /= id) model.saved_stories} ! []
 
 
 -- VIEW 

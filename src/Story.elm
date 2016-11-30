@@ -51,13 +51,14 @@ type alias TranslationDictionary parentMsg =
   { onInternalMessage : Int -> InternalMsg -> parentMsg 
   , onSaveStory : Int -> parentMsg
   , onRemoveStory : Int -> parentMsg
+  , onRemoveSaved : Int -> parentMsg
   }
 
 type alias Tranlator parentMsg = 
   Msg -> parentMsg 
 
 translator : TranslationDictionary parentMsg -> Tranlator parentMsg 
-translator { onInternalMessage, onSaveStory, onRemoveStory } msg = 
+translator { onInternalMessage, onSaveStory, onRemoveStory, onRemoveSaved } msg = 
   case msg of 
     ForSelf id internal -> 
       onInternalMessage id internal
@@ -68,11 +69,15 @@ translator { onInternalMessage, onSaveStory, onRemoveStory } msg =
     ForParent (RemoveStory id) -> 
       onRemoveStory id
 
+    ForParent (RemoveSavedStory id) -> 
+      onRemoveSaved id
+
 
 -- UPDATE 
 type OutMsg 
   = SaveStory Int 
   | RemoveStory Int
+  | RemoveSavedStory Int
 
 type InternalMsg 
   = NoOp
@@ -107,7 +112,7 @@ view story =
   let 
     action = 
       if story.saved 
-      then itemView story
+      then itemSavedView story
       else itemView story
   in 
     div [ class "story-item" ] 
@@ -131,7 +136,7 @@ itemView {id} =
 itemSavedView : Model -> Html Msg 
 itemSavedView {id} = 
   div [ class "story-controls pull-right" ] 
-    [ span [ class "glyphicon glyphicon-trash ", onClick (ForParent <| RemoveStory id) ] []
+    [ span [ class "glyphicon glyphicon-trash ", onClick (ForParent <| RemoveSavedStory id) ] []
     ]
   
 
