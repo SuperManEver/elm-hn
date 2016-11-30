@@ -135,16 +135,27 @@ update msg model =
 
 
 -- VIEW 
-view : Model -> Html Msg
-view model = 
+view : Model -> String -> Html Msg
+view model currentPage = 
   let 
     collect = (\ curr acc -> 
           case curr of 
             Just item -> item::acc 
             Nothing -> acc)  
 
+    currentStories = 
+      case currentPage of 
+        "Top Stories" -> 
+          model.top_stories
+
+        "Bookmarks" -> 
+          model.saved_stories 
+
+        _ -> 
+          model.top_stories
+
     stories = 
-      model.top_stories
+      currentStories
         |> List.map (\ id -> Dict.get id model.cached_stories) 
         |> List.foldr collect []
         |> List.map (lazy <| Story.view)

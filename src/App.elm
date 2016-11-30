@@ -112,7 +112,7 @@ view : Model -> Html Msg
 view model = 
   let 
     sidebar = App.map sidebarTranslator (SideBar.view model.sidebar)
-    stories = App.map StoriesMsg (StoryManager.view model.stories)
+    stories = App.map StoriesMsg (StoryManager.view model.stories model.currentPage)
   in
     div [] 
       [ sidebar 
