@@ -90,14 +90,11 @@ update msg model =
       NoOp -> 
         model ! []
 
-
       LatestFailed error -> 
         model ! []
 
-
       LatestLoaded ids ->
         preloadStories ids 
-
 
       LoadMoreStories -> 
         preloadStories model.top_ids
@@ -107,14 +104,13 @@ update msg model =
         then update LoadMoreStories model 
         else update NoOp model
 
-
       SaveStory id bool -> 
         let 
           saved' = 
             if bool 
             then model.saved_stories ++ [id]
             else List.filter (\ i -> not (i == id)) model.saved_stories
-            
+
           cached_stories' = 
             Dict.update 
               id 
@@ -125,13 +121,21 @@ update msg model =
           ! 
           []
 
-
       RemoveStory id -> 
         let 
           top_stories'    = List.filter (\ d -> not (d == id)) model.top_stories
           saved_stories'  = List.filter (\ d -> not (d == id)) model.saved_stories
         in
           { model | top_stories = top_stories', saved_stories = saved_stories' }  
+          ! 
+          []
+
+      RemoveSavedStory id -> 
+        let 
+          saved_stories' = List.filter (\ i -> i /= id) model.saved_stories
+          cached_stories' = Dict.update id (Maybe.map (\ s -> {s | saved = False })) model.cached_stories
+        in
+          { model | saved_stories = saved_stories', cached_stories = cached_stories' } 
           ! 
           []
 
@@ -148,13 +152,7 @@ update msg model =
           Nothing -> 
             model ! []
 
-      RemoveSavedStory id -> 
-        let 
-          saved_stories' = List.filter (\ i -> i /= id) model.saved_stories
-        in
-          { model | saved_stories = saved_stories' } 
-          ! 
-          []
+      
 
 
 -- VIEW 
