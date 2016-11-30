@@ -81,7 +81,7 @@ navigation links =
 
 linkView : Link -> Html Msg 
 linkView (title, url) = 
-  li [] 
+  li [ onClick (ChangePage title |> ForParent) ]  
     [ a [ class "link", href url ] [ text title ] 
     ]
 

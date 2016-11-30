@@ -28,6 +28,7 @@ main =
 type alias Model = 
   { sidebar : SideBar.Model
   , stories : StoryManager.Model
+  , currentPage : String
   }
 
 
@@ -35,6 +36,7 @@ defaultModel : Model
 defaultModel = 
   { sidebar = SideBar.defaultModel
   , stories = StoryManager.initModel
+  , currentPage = "Top stories"
   }  
 
 
@@ -96,7 +98,7 @@ update msg model =
         {model | sidebar = updatedSidebar} ! [ Cmd.map sidebarTranslator sidebarCmd ]
 
     ChangePage page -> 
-      model ! []
+      {model | currentPage = page} ! []
 
 
 -- SUBSCRIPTIONS
