@@ -177,7 +177,7 @@ view model currentPage =
       currentStories
         |> List.map (\ id -> Dict.get id model.cached_stories) 
         |> List.foldr collect []
-        |> List.map (lazy <| Story.view)
+        |> List.map (lazy <| Story.view currentPage)
   in 
     lazy2 div [ class "main-container" ] stories |> App.map storyTranslator
 

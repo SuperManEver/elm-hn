@@ -107,44 +107,67 @@ update msg model =
 
 
 -- VIEW 
-view : Model -> Html Msg
-view story = 
-  div [ class "story-item" ] 
-    [ a [ target "_blank"
-        , href story.url
-        , classList [ ("readed", story.read) ] 
-        ] 
-        [ text story.title ] 
-    , itemView story
-    ]
+view : String -> Model -> Html Msg
+view page story = 
+  let 
+    currentView = 
+      case page of 
+        "Bookmarks" -> 
+          itemSavedView 
+
+        _ -> 
+          itemView
+
+  in
+    div [ class "story-item" ] 
+      [ a [ target "_blank"
+          , href story.url
+          , classList [ ("readed", story.read) ] 
+          ] 
+          [ text story.title ] 
+      , currentView story
+      ]
 
 
 itemView : Model -> Html Msg 
 itemView {id, saved} = 
-  let  
-    clickMsg = 
-      if saved 
-      then (ForParent <| RemoveSavedStory id)
-      else (ForParent <| RemoveStory id)
-  in
-    div [ class "story-controls pull-right" ]
-      [ span 
-          [ classList [ ("glyphicon glyphicon-bookmark", True), ("saved-story", saved) ]
-          , title "Save for later"
-          , onClick (ForParent <| SaveStory id (not saved)) 
-          ] []
-      , span 
-          [ class "glyphicon glyphicon-ok"
-          , title "Mark as read"
-          , onClick (MarkAsUnread |> ForSelf id) 
-          ] []
-      , span 
-          [ class "glyphicon glyphicon-remove"
-          , title "Mark as read and hide"
-          , onClick clickMsg
-          ] []
-      ]
-  
+  div [ class "story-controls pull-right" ]
+    [ span 
+        [ classList [ ("glyphicon glyphicon-bookmark", True), ("saved-story", saved) ]
+        , title "Save for later"
+        , onClick (ForParent <| SaveStory id (not saved)) 
+        ] []
+    , span 
+        [ class "glyphicon glyphicon-ok"
+        , title "Mark as read"
+        , onClick (MarkAsUnread |> ForSelf id) 
+        ] []
+    , span 
+        [ class "glyphicon glyphicon-remove"
+        , title "Mark as read and hide"
+        , onClick (ForParent <| RemoveStory id)
+        ] []
+    ]
+
+itemSavedView : Model -> Html Msg 
+itemSavedView {id, saved} = 
+  div [ class "story-controls pull-right" ]
+    [ span 
+      [ classList [ ("glyphicon glyphicon-bookmark", True), ("saved-story", saved) ]
+      , title "Save for later"
+      , onClick (ForParent <| SaveStory id (not saved)) 
+      ] []
+    , span 
+      [ class "glyphicon glyphicon-ok"
+      , title "Mark as read"
+      , onClick (MarkAsUnread |> ForSelf id) 
+      ] []
+    , span 
+      [ class "glyphicon glyphicon-remove"
+      , title "Mark as read and hide"
+      , onClick (ForParent <| RemoveSavedStory id)
+      ] []
+    ]
 
 -- COMMANDS 
 storyDecoder : Json.Decoder StoryForLoad
