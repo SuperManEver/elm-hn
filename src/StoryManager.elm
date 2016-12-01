@@ -124,15 +124,13 @@ update msg model =
       RemoveStory id -> 
         let 
           top_stories'    = List.filter (\ d -> not (d == id)) model.top_stories
-          saved_stories'  = List.filter (\ d -> not (d == id)) model.saved_stories
+          -- saved_stories'  = List.filter (\ d -> not (d == id)) model.saved_stories
         in
-          { model | top_stories = top_stories', saved_stories = saved_stories' }  
-          ! 
-          []
+          { model | top_stories = top_stories'} ! []
 
       RemoveSavedStory id -> 
         let 
-          saved_stories' = List.filter (\ i -> i /= id) model.saved_stories
+          saved_stories'  = List.filter (\ i -> i /= id) model.saved_stories
           cached_stories' = Dict.update id (Maybe.map (\ s -> {s | saved = False })) model.cached_stories
         in
           { model | saved_stories = saved_stories', cached_stories = cached_stories' } 

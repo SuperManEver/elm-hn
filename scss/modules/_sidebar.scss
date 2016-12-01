@@ -53,7 +53,7 @@ $toggle_size : 30px;
         font-size : 0.86em;
         font-weight : bold;
 
-        &:hover {
+        &:hover, &.current-link {
           background : rgba(6, 150, 225, 0.3);
           // background: #235777;
           border-left : 4px solid #235777;

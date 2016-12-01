@@ -64,25 +64,27 @@ update msg model =
 
 
 -- VIEW 
-view : Model -> Html Msg 
-view {state} = 
+view : Model -> String -> Html Msg 
+view {state} currentPage = 
   aside [ id "sidebar", classList [ ("open", state) ] ] 
     [ (sidebarToggle state)
-    , navigation links
+    , navigation links currentPage
     ]    
 
 
-navigation : List Link -> Html Msg 
-navigation links = 
+navigation : List Link -> String -> Html Msg 
+navigation links page = 
   links 
-    |> List.map linkView
+    |> List.map (linkView page)
     |> ul [ class "navigation" ]  
 
 
-linkView : Link -> Html Msg 
-linkView (title, url) = 
+linkView : String -> Link -> Html Msg 
+linkView page (title, url) = 
   li [ onClick (ChangePage title |> ForParent) ]  
-    [ a [ class "link", href url ] [ text title ] 
+    [ a [ classList [ ("link", True), ("current-link", title == page) ]
+        , href url 
+        ] [ text title ] 
     ]
 
 
