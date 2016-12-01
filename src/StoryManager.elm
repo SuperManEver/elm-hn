@@ -46,7 +46,7 @@ type Msg
   | LatestLoaded (List Int)
   | LoadMoreStories 
   | Scroll Bool
-  | SaveStory Int Bool
+  | SaveStory Int
   | RemoveStory Int
   | RemoveSavedStory Int
   | StoryMsg Int Story.InternalMsg
@@ -104,20 +104,14 @@ update msg model =
         then update LoadMoreStories model 
         else update NoOp model
 
-      SaveStory id bool -> 
+      SaveStory id -> 
         let 
-          saved' = 
-            if bool 
-            then model.saved_stories ++ [id]
-            else List.filter (\ i -> not (i == id)) model.saved_stories
+          saved_stories' = model.saved_stories ++ [id]
 
           cached_stories' = 
-            Dict.update 
-              id 
-              (Maybe.map (\ story -> {story | saved = bool} )) 
-              model.cached_stories
+            Dict.update id (Maybe.map (\ story -> {story | saved = True})) model.cached_stories
         in 
-          { model | saved_stories = saved', cached_stories = cached_stories' } 
+          { model | saved_stories = saved_stories', cached_stories = cached_stories' } 
           ! 
           []
 

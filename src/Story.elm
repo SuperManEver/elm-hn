@@ -49,7 +49,7 @@ defaultModel =
 
 type alias TranslationDictionary parentMsg = 
   { onInternalMessage : Int -> InternalMsg -> parentMsg 
-  , onSaveStory : Int -> Bool -> parentMsg
+  , onSaveStory : Int -> parentMsg
   , onRemoveStory : Int -> parentMsg
   , onRemoveSaved : Int -> parentMsg
   }
@@ -63,8 +63,8 @@ translator { onInternalMessage, onSaveStory, onRemoveStory, onRemoveSaved } msg 
     ForSelf id internal -> 
       onInternalMessage id internal
 
-    ForParent (SaveStory id bool) -> 
-      onSaveStory id bool
+    ForParent (SaveStory id) -> 
+      onSaveStory id
 
     ForParent (RemoveStory id) -> 
       onRemoveStory id
@@ -75,7 +75,7 @@ translator { onInternalMessage, onSaveStory, onRemoveStory, onRemoveSaved } msg 
 
 -- UPDATE 
 type OutMsg 
-  = SaveStory Int Bool
+  = SaveStory Int 
   | RemoveStory Int
   | RemoveSavedStory Int
 
@@ -131,11 +131,17 @@ view page story =
 
 itemView : Model -> Html Msg 
 itemView {id, saved} = 
+  let 
+    action = 
+      if saved 
+      then (ForParent <| RemoveSavedStory id) 
+      else (ForParent <| SaveStory id)
+  in
   div [ class "story-controls pull-right" ]
     [ span 
         [ classList [ ("glyphicon glyphicon-bookmark", True), ("saved-story", saved) ]
         , title "Save for later"
-        , onClick (ForParent <| SaveStory id (not saved)) 
+        , onClick action
         ] []
     , span 
         [ class "glyphicon glyphicon-ok"
@@ -155,7 +161,7 @@ itemSavedView {id, saved} =
     [ span 
       [ classList [ ("glyphicon glyphicon-bookmark", True), ("saved-story", saved) ]
       , title "Remove from saved"
-      , onClick (ForParent <| SaveStory id (not saved)) 
+      , onClick (ForParent <| RemoveSavedStory id) 
       ] []
     , span 
       [ class "glyphicon glyphicon-ok"
