@@ -123,10 +123,9 @@ update msg model =
 
       RemoveStory id -> 
         let 
-          top_stories'    = List.filter (\ d -> not (d == id)) model.top_stories
-          -- saved_stories'  = List.filter (\ d -> not (d == id)) model.saved_stories
+          top_stories' = List.filter (\ d -> not (d == id)) model.top_stories
         in
-          { model | top_stories = top_stories'} ! []
+          { model | top_stories = top_stories' } ! []
 
       RemoveSavedStory id -> 
         let 
