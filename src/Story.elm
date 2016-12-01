@@ -154,7 +154,7 @@ itemSavedView {id, saved} =
   div [ class "story-controls pull-right" ]
     [ span 
       [ classList [ ("glyphicon glyphicon-bookmark", True), ("saved-story", saved) ]
-      , title "Save for later"
+      , title "Remove from saved"
       , onClick (ForParent <| SaveStory id (not saved)) 
       ] []
     , span 
